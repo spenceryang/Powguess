@@ -18,6 +18,9 @@ export default function RootLayout({
       <head>
         <title>PowGuess - Snowfall Prediction Markets</title>
         <meta name="description" content="Bet on snowfall at your favorite ski resorts" />
+        <link rel="icon" href="/powguess-logo.png" type="image/png" />
+        <link rel="apple-touch-icon" href="/powguess-logo.png" />
+        <meta property="og:image" content="/powguess-logo.png" />
       </head>
       <body className="bg-snow-900 text-white">
         <QueryClientProvider client={queryClient}>

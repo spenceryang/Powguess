@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { ConnectButton } from "thirdweb/react";
 import { client, monadTestnet } from "@/lib/thirdweb";
 import { useBeerMode } from "@/lib/BeerModeContext";
@@ -25,7 +26,13 @@ export default function Header() {
         justifyContent: "space-between",
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <span style={{ fontSize: "2.5rem" }}>&#10052;</span>
+          <Image
+            src="/powguess-logo.png"
+            alt="PowGuess Logo"
+            width={48}
+            height={48}
+            style={{ borderRadius: "8px" }}
+          />
           <div>
             <h1 style={{ fontSize: "1.5rem", fontWeight: "700", color: "white", margin: 0 }}>PowGuess</h1>
             <p style={{ fontSize: "0.75rem", color: "#64748b", margin: 0 }}>Snowfall Prediction Markets</p>
