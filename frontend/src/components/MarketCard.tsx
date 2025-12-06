@@ -126,6 +126,49 @@ export default function MarketCard({ market, onRefresh }: MarketCardProps) {
     }
   };
 
+  const handleClaim = async () => {
+    if (!account) {
+      alert("Please connect your wallet first");
+      return;
+    }
+
+    if (!SNOW_MARKET_ADDRESS) {
+      alert("Contract address not configured");
+      return;
+    }
+
+    try {
+      const marketContract = getContract({
+        client,
+        chain: monadTestnet,
+        address: SNOW_MARKET_ADDRESS,
+      });
+
+      console.log("Claiming winnings for market:", market.id);
+
+      const claimTx = prepareContractCall({
+        contract: marketContract,
+        method: "function claimWinnings(uint256 marketId)",
+        params: [BigInt(market.id)],
+      });
+
+      sendTransaction(claimTx, {
+        onSuccess: () => {
+          console.log("Winnings claimed successfully!");
+          alert("Winnings claimed successfully!");
+          onRefresh?.();
+        },
+        onError: (error) => {
+          console.error("Claim failed:", error);
+          alert(`Failed to claim: ${error.message || "Unknown error"}`);
+        },
+      });
+    } catch (error) {
+      console.error("Claim setup failed:", error);
+      alert(`Claim failed: ${error instanceof Error ? error.message : "Unknown error"}`);
+    }
+  };
+
   const resortEmojis: { [key: string]: string } = {
     "Mammoth Mountain": "🦣",
     "Palisades Tahoe": "🏔️",
@@ -400,6 +443,45 @@ export default function MarketCard({ market, onRefresh }: MarketCardProps) {
               >
                 Buy NO @ {beerMode ? `${toBeer(SHARE_PRICE)} 🍺` : "$0.50"}
               </button>
+            </div>
+          )}
+
+          {/* Claim Winnings Button - Shows for resolved markets */}
+          {market.status === "Resolved" && market.outcome !== "Undecided" && (
+            <div style={{ marginTop: "12px" }}>
+              <button
+                onClick={handleClaim}
+                disabled={isPending || !account}
+                style={{
+                  width: "100%",
+                  background: market.outcome === "Yes"
+                    ? "linear-gradient(135deg, #059669 0%, #10b981 100%)"
+                    : "linear-gradient(135deg, #dc2626 0%, #ef4444 100%)",
+                  color: "white",
+                  fontWeight: "700",
+                  padding: "14px 24px",
+                  borderRadius: "12px",
+                  border: "none",
+                  cursor: isPending || !account ? "not-allowed" : "pointer",
+                  opacity: isPending || !account ? 0.5 : 1,
+                  fontSize: "1rem",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px",
+                }}
+              >
+                <span style={{ fontSize: "1.25rem" }}>🏆</span>
+                {isPending ? "Claiming..." : !account ? "Connect Wallet to Claim" : "Claim Winnings"}
+              </button>
+              <p style={{
+                textAlign: "center",
+                color: "#64748b",
+                fontSize: "0.75rem",
+                marginTop: "8px",
+              }}>
+                {market.outcome === "Yes" ? "YES" : "NO"} wins! Claim your share of the pool.
+              </p>
             </div>
           )}
         </div>
