@@ -49,8 +49,18 @@ export default function MarketCard({ market, onRefresh }: MarketCardProps) {
   }, [market.resortName]);
 
   const handleBuy = async (isYes: boolean) => {
-    if (!account || !SNOW_MARKET_ADDRESS || !MOCK_USDC_ADDRESS) {
-      alert("Please connect your wallet and ensure contracts are deployed");
+    if (!account) {
+      alert("Please connect your wallet first");
+      return;
+    }
+
+    if (!SNOW_MARKET_ADDRESS || !MOCK_USDC_ADDRESS) {
+      alert("Contract addresses not configured. Check your .env.local file.");
+      return;
+    }
+
+    if (shareAmount < 1) {
+      alert("Please enter at least 1 share");
       return;
     }
 
@@ -61,7 +71,14 @@ export default function MarketCard({ market, onRefresh }: MarketCardProps) {
         address: MOCK_USDC_ADDRESS,
       });
 
+      // 0.5 USDC per share = 500000 (6 decimals)
       const approveAmount = BigInt(shareAmount) * BigInt(500000);
+
+      console.log("Approving USDC:", {
+        amount: approveAmount.toString(),
+        spender: SNOW_MARKET_ADDRESS,
+        shares: shareAmount,
+      });
 
       const approveTx = prepareContractCall({
         contract: usdcContract,
@@ -71,6 +88,8 @@ export default function MarketCard({ market, onRefresh }: MarketCardProps) {
 
       sendTransaction(approveTx, {
         onSuccess: async () => {
+          console.log("USDC approved, now buying shares...");
+
           const marketContract = getContract({
             client,
             chain: monadTestnet,
@@ -85,14 +104,25 @@ export default function MarketCard({ market, onRefresh }: MarketCardProps) {
 
           sendTransaction(buyTx, {
             onSuccess: () => {
+              console.log("Shares purchased successfully!");
               setShowBuyModal(false);
+              setShareAmount(1);
               onRefresh?.();
+            },
+            onError: (error) => {
+              console.error("Buy transaction failed:", error);
+              alert(`Failed to buy shares: ${error.message || "Unknown error"}`);
             },
           });
         },
+        onError: (error) => {
+          console.error("Approval failed:", error);
+          alert(`Failed to approve USDC: ${error.message || "Unknown error"}`);
+        },
       });
     } catch (error) {
-      console.error("Transaction failed:", error);
+      console.error("Transaction setup failed:", error);
+      alert(`Transaction failed: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
   };
 
@@ -400,8 +430,18 @@ export default function MarketCard({ market, onRefresh }: MarketCardProps) {
               <input
                 type="number"
                 min="1"
-                value={shareAmount}
-                onChange={(e) => setShareAmount(Math.max(1, parseInt(e.target.value) || 1))}
+                value={shareAmount || ""}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val === "") {
+                    setShareAmount(0);
+                  } else {
+                    setShareAmount(Math.max(1, parseInt(val) || 1));
+                  }
+                }}
+                onBlur={() => {
+                  if (shareAmount < 1) setShareAmount(1);
+                }}
                 style={{
                   width: "100%",
                   background: "rgba(15, 30, 55, 0.8)",
