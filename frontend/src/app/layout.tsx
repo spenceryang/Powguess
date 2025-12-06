@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThirdwebProvider } from "thirdweb/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
+import { BeerModeProvider } from "@/lib/BeerModeContext";
 
 export default function RootLayout({
   children,
@@ -21,9 +22,11 @@ export default function RootLayout({
       <body className="bg-snow-900 text-white">
         <QueryClientProvider client={queryClient}>
           <ThirdwebProvider>
-            <div className="min-h-screen">
-              {children}
-            </div>
+            <BeerModeProvider>
+              <div className="min-h-screen">
+                {children}
+              </div>
+            </BeerModeProvider>
           </ThirdwebProvider>
         </QueryClientProvider>
       </body>

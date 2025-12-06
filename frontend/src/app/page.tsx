@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import Header from "@/components/Header";
 import MarketCard from "@/components/MarketCard";
 import { fetchMarkets, type Market } from "@/lib/api";
+import { useBeerMode } from "@/lib/BeerModeContext";
 
 function Snowflakes() {
   const [flakes, setFlakes] = useState<Array<{ id: number; left: number; delay: number; duration: number }>>([]);
@@ -44,6 +45,7 @@ export default function Home() {
     queryFn: fetchMarkets,
     refetchInterval: 30000,
   });
+  const { beerMode, toBeer } = useBeerMode();
 
   return (
     <main style={{ minHeight: "100vh", position: "relative" }}>
@@ -56,22 +58,42 @@ export default function Home() {
           Predict the Powder
         </h2>
         <p style={{ fontSize: "1.25rem", color: "#94a3b8", maxWidth: "600px", margin: "0 auto 32px" }}>
-          Bet on snowfall at top ski resorts. Buy YES or NO shares at $0.50 each and win if you predict correctly!
+          {beerMode
+            ? "Bet on snowfall at top ski resorts. Risk a few sips of beer to win big when you predict correctly!"
+            : "Bet on snowfall at top ski resorts. Buy YES or NO shares at $0.50 each and win if you predict correctly!"
+          }
         </p>
         <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "16px" }}>
-          <div className="glass-card" style={{ padding: "12px 20px" }}>
+          <div className="glass-card" style={{
+            padding: "12px 20px",
+            border: beerMode ? "1px solid rgba(251, 191, 36, 0.3)" : undefined,
+            background: beerMode ? "rgba(251, 191, 36, 0.1)" : undefined,
+          }}>
             <span style={{ color: "#94a3b8" }}>Fixed Price:</span>
-            <span style={{ color: "#38bdf8", fontWeight: "600", marginLeft: "8px" }}>$0.50/share</span>
+            <span style={{ color: beerMode ? "#fbbf24" : "#38bdf8", fontWeight: "600", marginLeft: "8px" }}>
+              {beerMode ? `${toBeer(0.5)}/share 🍺` : "$0.50/share"}
+            </span>
           </div>
           <div className="glass-card" style={{ padding: "12px 20px" }}>
             <span style={{ color: "#94a3b8" }}>Network:</span>
             <span style={{ color: "#a78bfa", fontWeight: "600", marginLeft: "8px" }}>Monad Testnet</span>
           </div>
-          <div className="glass-card" style={{ padding: "12px 20px" }}>
+          <div className="glass-card" style={{
+            padding: "12px 20px",
+            border: beerMode ? "1px solid rgba(251, 191, 36, 0.3)" : undefined,
+            background: beerMode ? "rgba(251, 191, 36, 0.1)" : undefined,
+          }}>
             <span style={{ color: "#94a3b8" }}>Currency:</span>
-            <span style={{ color: "#4ade80", fontWeight: "600", marginLeft: "8px" }}>USDC</span>
+            <span style={{ color: beerMode ? "#fbbf24" : "#4ade80", fontWeight: "600", marginLeft: "8px" }}>
+              {beerMode ? "Lodge Beers 🍺" : "USDC"}
+            </span>
           </div>
         </div>
+        {beerMode && (
+          <p style={{ color: "#fbbf24", fontSize: "0.85rem", marginTop: "16px", opacity: 0.8 }}>
+            🍺 Beer Mode Active! All prices shown in ski lodge beers ($9 each)
+          </p>
+        )}
       </section>
 
       {/* Markets Section */}

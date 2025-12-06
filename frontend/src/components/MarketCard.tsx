@@ -6,6 +6,7 @@ import { getContract, prepareContractCall } from "thirdweb";
 import { client, monadTestnet, SNOW_MARKET_ADDRESS, MOCK_USDC_ADDRESS } from "@/lib/thirdweb";
 import type { Market, ForecastData } from "@/lib/api";
 import { fetchForecast } from "@/lib/api";
+import { useBeerMode } from "@/lib/BeerModeContext";
 
 interface MarketCardProps {
   market: Market;
@@ -21,10 +22,16 @@ export default function MarketCard({ market, onRefresh }: MarketCardProps) {
   const [forecast, setForecast] = useState<ForecastData | null>(null);
   const [showForecast, setShowForecast] = useState(false);
   const [loadingForecast, setLoadingForecast] = useState(false);
+  const { beerMode, toBeer } = useBeerMode();
 
   const isExpired = market.resolutionTime * 1000 < Date.now();
   const timeLeft = market.resolutionTime * 1000 - Date.now();
   const daysLeft = Math.max(0, Math.floor(timeLeft / (1000 * 60 * 60 * 24)));
+
+  // Price constants
+  const SHARE_PRICE = 0.5;
+  const shareTotal = shareAmount * SHARE_PRICE;
+  const poolValue = parseFloat(market.totalPool);
 
   useEffect(() => {
     const loadForecast = async () => {
@@ -157,7 +164,13 @@ export default function MarketCard({ market, onRefresh }: MarketCardProps) {
           {/* Info Row */}
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "16px", fontSize: "0.875rem" }}>
             <span style={{ color: "#64748b" }}>Total Pool</span>
-            <span style={{ color: "#38bdf8", fontWeight: "600" }}>${market.totalPool} USDC</span>
+            <span style={{ color: beerMode ? "#fbbf24" : "#38bdf8", fontWeight: "600" }}>
+              {beerMode ? (
+                <>{toBeer(poolValue)} 🍺</>
+              ) : (
+                <>${market.totalPool} USDC</>
+              )}
+            </span>
           </div>
 
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "20px", fontSize: "0.875rem" }}>
@@ -349,13 +362,13 @@ export default function MarketCard({ market, onRefresh }: MarketCardProps) {
                 onClick={() => { setBuyType("yes"); setShowBuyModal(true); }}
                 className="btn-yes"
               >
-                Buy YES @ $0.50
+                Buy YES @ {beerMode ? `${toBeer(SHARE_PRICE)} 🍺` : "$0.50"}
               </button>
               <button
                 onClick={() => { setBuyType("no"); setShowBuyModal(true); }}
                 className="btn-no"
               >
-                Buy NO @ $0.50
+                Buy NO @ {beerMode ? `${toBeer(SHARE_PRICE)} 🍺` : "$0.50"}
               </button>
             </div>
           )}
@@ -409,12 +422,21 @@ export default function MarketCard({ market, onRefresh }: MarketCardProps) {
             }}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
                 <span style={{ color: "#94a3b8" }}>Price per share</span>
-                <span style={{ color: "white" }}>$0.50 USDC</span>
+                <span style={{ color: beerMode ? "#fbbf24" : "white" }}>
+                  {beerMode ? `${toBeer(SHARE_PRICE)} 🍺` : "$0.50 USDC"}
+                </span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
                 <span style={{ color: "#94a3b8" }}>Total cost</span>
-                <span style={{ color: "#38bdf8", fontWeight: "700" }}>${(shareAmount * 0.5).toFixed(2)} USDC</span>
+                <span style={{ color: beerMode ? "#fbbf24" : "#38bdf8", fontWeight: "700" }}>
+                  {beerMode ? `${toBeer(shareTotal)} 🍺` : `$${shareTotal.toFixed(2)} USDC`}
+                </span>
               </div>
+              {beerMode && (
+                <p style={{ color: "#64748b", fontSize: "0.7rem", textAlign: "center", marginTop: "8px", marginBottom: 0 }}>
+                  (Based on $9 lodge beer price)
+                </p>
+              )}
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>

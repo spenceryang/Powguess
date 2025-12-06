@@ -2,8 +2,11 @@
 
 import { ConnectButton } from "thirdweb/react";
 import { client, monadTestnet } from "@/lib/thirdweb";
+import { useBeerMode } from "@/lib/BeerModeContext";
 
 export default function Header() {
+  const { beerMode, toggleBeerMode } = useBeerMode();
+
   return (
     <header style={{
       borderBottom: "1px solid rgba(100, 160, 220, 0.2)",
@@ -28,22 +31,50 @@ export default function Header() {
             <p style={{ fontSize: "0.75rem", color: "#64748b", margin: 0 }}>Snowfall Prediction Markets</p>
           </div>
         </div>
-        <ConnectButton
-          client={client}
-          chain={monadTestnet}
-          connectButton={{
-            label: "Connect Wallet",
-            style: {
-              background: "linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)",
-              color: "white",
-              padding: "10px 20px",
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          {/* Beer Mode Toggle */}
+          <button
+            onClick={toggleBeerMode}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              padding: "8px 16px",
               borderRadius: "12px",
-              fontWeight: "600",
-              border: "none",
+              border: beerMode
+                ? "2px solid #fbbf24"
+                : "1px solid rgba(100, 160, 220, 0.3)",
+              background: beerMode
+                ? "rgba(251, 191, 36, 0.15)"
+                : "rgba(15, 30, 55, 0.8)",
+              color: beerMode ? "#fbbf24" : "#94a3b8",
               cursor: "pointer",
-            },
-          }}
-        />
+              fontWeight: "600",
+              fontSize: "0.875rem",
+              transition: "all 0.2s",
+            }}
+            title={beerMode ? "Switch to USDC" : "Switch to Beer Mode"}
+          >
+            <span style={{ fontSize: "1.25rem" }}>{beerMode ? "🍺" : "💵"}</span>
+            <span>{beerMode ? "Beer Mode" : "USDC"}</span>
+          </button>
+          <ConnectButton
+            client={client}
+            chain={monadTestnet}
+            connectButton={{
+              label: "Connect Wallet",
+              style: {
+                background: "linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)",
+                color: "white",
+                padding: "10px 20px",
+                borderRadius: "12px",
+                fontWeight: "600",
+                border: "none",
+                cursor: "pointer",
+              },
+            }}
+          />
+        </div>
       </div>
     </header>
   );
