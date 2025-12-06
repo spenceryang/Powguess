@@ -1,11 +1,33 @@
 # PowGuess - Snowfall Prediction Markets
 
-A prediction market platform where users bet on snowfall at ski resorts using blockchain technology.
+<p align="center">
+  <img src="frontend/public/powguess-logo.png" alt="PowGuess Logo" width="120" />
+</p>
+
+<p align="center">
+  <strong>Predict the Powder. Win Big.</strong>
+</p>
+
+<p align="center">
+  <a href="#features">Features</a> •
+  <a href="#quick-start">Quick Start</a> •
+  <a href="#tech-stack">Tech Stack</a> •
+  <a href="#license">License</a>
+</p>
+
+---
+
+**Built for [Monad Blitz SF 2025](https://monad.xyz) Hackathon**
+
+A prediction market platform where users bet on snowfall at ski resorts using blockchain technology on the Monad Testnet. Buy YES or NO shares at fixed prices and win when you predict the powder correctly!
 
 ## Features
 
 - **Prediction Markets**: Bet on whether ski resorts will receive target snowfall amounts
 - **Fixed-Price Shares**: YES/NO shares always cost $0.50 USDC each
+- **Beer Mode**: Toggle to view all prices in ski lodge beers instead of USDC (for the true powder hounds)
+- **Weather Forecasts**: Live snow forecasts with 24h/48h/7-day predictions
+- **Resort Webcams**: Direct links to live webcams at each resort
 - **Weather Integration**: Real-time weather data from OpenWeather API
 - **x402 Micropayments**: Pay-per-query for detailed market and weather data
 - **Wallet Integration**: Connect via Thirdweb SDK + MetaMask
@@ -228,10 +250,32 @@ For development, `SKIP_PAYMENTS=true` is set by default.
 - **Blockchain**: Monad Testnet
 - **Weather**: OpenWeather API
 
-## Owner Address
+## Deployed Contracts (Monad Testnet)
 
-Contract owner: `0xb103a5867d1bf1a4239410c10ec968a5a190231e`
+| Contract | Address |
+|----------|---------|
+| SnowMarket | `0xeF92D19dcee0ee22fDd6Ea62634d7FAEe8706d6c` |
+| MockUSDC | `0xBDB5976d7a9712089c175e62790777EFFC885Eb6` |
+
+**Contract Owner**: `0xb103a5867d1bf1a4239410c10ec968a5a190231e`
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## Acknowledgments
+
+- Built for **Monad Blitz SF 2025** Hackathon
+- Powered by [Monad](https://monad.xyz) - High-performance EVM blockchain
+- Wallet integration by [Thirdweb](https://thirdweb.com)
+- Weather data from [OpenWeather](https://openweathermap.org)
 
 ## License
 
-MIT
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+<p align="center">
+  Made with ❄️ for powder lovers everywhere
+</p>
