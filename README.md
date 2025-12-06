@@ -27,6 +27,9 @@ A prediction market platform where users bet on snowfall at ski resorts using bl
 - **Fixed-Price Shares**: YES/NO shares always cost $0.50 USDC each
 - **Beer Mode**: Toggle to view all prices in ski lodge beers instead of USDC (for the true powder hounds)
 - **Buy Beer with Winnings**: Convert your USDC winnings into lodge beer vouchers via x402 micropayments
+- **Beer Leaderboard**: Track who has won the most beers across all users
+- **Friends Circle**: Add wallet addresses with labels, see friends' predictions on each market
+- **Toast Notifications**: Elegant slide-in notifications for all actions
 - **Weather Forecasts**: Live snow forecasts with 24h/48h/7-day predictions
 - **Resort Webcams**: Direct links to live webcams at each resort
 - **Weather Integration**: Real-time weather data from OpenWeather API
@@ -171,6 +174,10 @@ Frontend runs on http://localhost:3000
 | `/api/weather/:resort` | GET | $0.01 | Weather data |
 | `/api/markets/:id/settle` | POST | Admin | Settlement info |
 | `/api/contracts` | GET | Free | Contract addresses |
+| `/api/leaderboard` | GET | Free | Beer leaderboard |
+| `/api/circles/:address` | GET | Free | Get friends circle |
+| `/api/circles/:address/friends` | POST | Free | Add friend to circle |
+| `/api/circles/:address/positions/:marketId` | GET | Free | Friends positions |
 
 ## Smart Contracts
 
@@ -310,6 +317,66 @@ Response:
 | MockUSDC | `0xBDB5976d7a9712089c175e62790777EFFC885Eb6` |
 
 **Contract Owner**: `0xb103a5867d1bf1a4239410c10ec968a5a190231e`
+
+## Deployment
+
+### Deploy Backend to Railway
+
+1. Go to [railway.app](https://railway.app) and sign in with GitHub
+
+2. **New Project** → **Deploy from GitHub repo** → Select `Powguess`
+
+3. **Configure the service:**
+   - Click on the service → **Settings** tab
+   - **Root Directory**: `backend`
+   - **Build Command**: `npm install && npm run build`
+   - **Start Command**: `npm start`
+
+4. **Add Environment Variables** (Variables tab):
+   ```
+   PORT=3001
+   MONAD_RPC_URL=https://testnet-rpc.monad.xyz
+   SNOW_MARKET_ADDRESS=0xeF92D19dcee0ee22fDd6Ea62634d7FAEe8706d6c
+   MOCK_USDC_ADDRESS=0xBDB5976d7a9712089c175e62790777EFFC885Eb6
+   PAYMENT_ADDRESS=0xb103a5867d1bf1a4239410c10ec968a5a190231e
+   SKIP_PAYMENTS=true
+   ```
+
+5. **Deploy** - Railway provides a URL like `https://powguess-production.up.railway.app`
+
+### Deploy Frontend to Vercel
+
+1. Go to [vercel.com](https://vercel.com) and sign in with GitHub
+
+2. **Add New Project** → **Import `Powguess`**
+
+3. **Configure:**
+   - **Root Directory**: `frontend`
+   - **Framework Preset**: Next.js (auto-detected)
+
+4. **Add Environment Variables:**
+   ```
+   NEXT_PUBLIC_THIRDWEB_CLIENT_ID=<your-thirdweb-client-id>
+   NEXT_PUBLIC_API_URL=https://<your-railway-url>
+   ```
+
+5. **Deploy**
+
+### Connect Custom Domain
+
+#### In Vercel:
+1. Project Settings → Domains → Add your domain
+
+#### In your DNS provider (e.g., Namecheap):
+| Type | Host | Value |
+|------|------|-------|
+| A | @ | 76.76.21.21 |
+| CNAME | www | cname.vercel-dns.com |
+
+#### Optional: API Subdomain
+1. In Railway: Settings → Domains → Add `api.yourdomain.com`
+2. In DNS: Add CNAME `api` → Railway's provided domain
+3. Update Vercel env: `NEXT_PUBLIC_API_URL=https://api.yourdomain.com`
 
 ## Contributing
 
