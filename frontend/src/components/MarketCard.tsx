@@ -21,7 +21,6 @@ export default function MarketCard({ market, onRefresh }: MarketCardProps) {
   const isExpired = market.resolutionTime * 1000 < Date.now();
   const timeLeft = market.resolutionTime * 1000 - Date.now();
   const daysLeft = Math.max(0, Math.floor(timeLeft / (1000 * 60 * 60 * 24)));
-  const hoursLeft = Math.max(0, Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)));
 
   const handleBuy = async (isYes: boolean) => {
     if (!account || !SNOW_MARKET_ADDRESS || !MOCK_USDC_ADDRESS) {
@@ -30,14 +29,13 @@ export default function MarketCard({ market, onRefresh }: MarketCardProps) {
     }
 
     try {
-      // First approve USDC
       const usdcContract = getContract({
         client,
         chain: monadTestnet,
         address: MOCK_USDC_ADDRESS,
       });
 
-      const approveAmount = BigInt(shareAmount) * BigInt(500000); // 0.5 USDC per share
+      const approveAmount = BigInt(shareAmount) * BigInt(500000);
 
       const approveTx = prepareContractCall({
         contract: usdcContract,
@@ -47,7 +45,6 @@ export default function MarketCard({ market, onRefresh }: MarketCardProps) {
 
       sendTransaction(approveTx, {
         onSuccess: async () => {
-          // Then buy shares
           const marketContract = getContract({
             client,
             chain: monadTestnet,
@@ -73,80 +70,108 @@ export default function MarketCard({ market, onRefresh }: MarketCardProps) {
     }
   };
 
-  const getResortEmoji = (name: string) => {
-    const emojis: { [key: string]: string } = {
-      "Mammoth Mountain": "🦣",
-      "Palisades Tahoe": "🏔️",
-      "Jackson Hole": "🐃",
-      "Snowbird": "🐦",
-      "Aspen": "🌲",
-    };
-    return emojis[name] || "⛷️";
+  const resortEmojis: { [key: string]: string } = {
+    "Mammoth Mountain": "🦣",
+    "Palisades Tahoe": "🏔️",
+    "Jackson Hole": "🦬",
+    "Snowbird": "🐦",
+    "Aspen": "🌲",
+  };
+
+  const resortGradients: { [key: string]: string } = {
+    "Mammoth Mountain": "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+    "Palisades Tahoe": "linear-gradient(135deg, #11998e 0%, #38ef7d 100%)",
+    "Jackson Hole": "linear-gradient(135deg, #ee0979 0%, #ff6a00 100%)",
+    "Snowbird": "linear-gradient(135deg, #2193b0 0%, #6dd5ed 100%)",
+    "Aspen": "linear-gradient(135deg, #834d9b 0%, #d04ed6 100%)",
   };
 
   return (
     <>
-      <div className="bg-snow-800 rounded-xl border border-snow-700 overflow-hidden hover:border-blue-500 transition-all duration-200">
+      <div className="glass-card" style={{ overflow: "hidden", transition: "all 0.3s" }}>
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-800 px-6 py-4">
-          <div className="flex items-center gap-3">
-            <span className="text-3xl">{getResortEmoji(market.resortName)}</span>
+        <div style={{
+          background: resortGradients[market.resortName] || "linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)",
+          padding: "20px 24px",
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <span style={{ fontSize: "2rem" }}>{resortEmojis[market.resortName] || "⛷️"}</span>
             <div>
-              <h3 className="text-xl font-bold text-white">{market.resortName}</h3>
-              <p className="text-blue-200 text-sm">Target: {market.targetSnowfall}" of snow</p>
+              <h3 style={{ fontSize: "1.25rem", fontWeight: "700", color: "white", margin: 0 }}>{market.resortName}</h3>
+              <p style={{ fontSize: "0.875rem", color: "rgba(255,255,255,0.8)", margin: 0 }}>
+                Target: {market.targetSnowfall}" of snow
+              </p>
             </div>
           </div>
         </div>
 
         {/* Content */}
-        <div className="p-6">
-          <p className="text-snow-300 mb-4">{market.description}</p>
+        <div style={{ padding: "24px" }}>
+          <p style={{ color: "#94a3b8", marginBottom: "20px", fontSize: "0.9rem" }}>{market.description}</p>
 
           {/* Odds Display */}
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <div className="bg-green-900/30 border border-green-700 rounded-lg p-4 text-center">
-              <p className="text-green-400 text-sm font-medium">YES</p>
-              <p className="text-2xl font-bold text-white">{market.yesOdds}%</p>
-              <p className="text-snow-400 text-xs">{market.totalYesShares} shares</p>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "20px" }}>
+            <div style={{
+              background: "rgba(16, 185, 129, 0.1)",
+              border: "1px solid rgba(16, 185, 129, 0.3)",
+              borderRadius: "12px",
+              padding: "16px",
+              textAlign: "center",
+            }}>
+              <p style={{ color: "#10b981", fontSize: "0.75rem", fontWeight: "600", margin: "0 0 4px 0" }}>YES</p>
+              <p style={{ color: "white", fontSize: "1.75rem", fontWeight: "700", margin: "0 0 4px 0" }}>{market.yesOdds}%</p>
+              <p style={{ color: "#64748b", fontSize: "0.7rem", margin: 0 }}>{market.totalYesShares} shares</p>
             </div>
-            <div className="bg-red-900/30 border border-red-700 rounded-lg p-4 text-center">
-              <p className="text-red-400 text-sm font-medium">NO</p>
-              <p className="text-2xl font-bold text-white">{market.noOdds}%</p>
-              <p className="text-snow-400 text-xs">{market.totalNoShares} shares</p>
+            <div style={{
+              background: "rgba(239, 68, 68, 0.1)",
+              border: "1px solid rgba(239, 68, 68, 0.3)",
+              borderRadius: "12px",
+              padding: "16px",
+              textAlign: "center",
+            }}>
+              <p style={{ color: "#ef4444", fontSize: "0.75rem", fontWeight: "600", margin: "0 0 4px 0" }}>NO</p>
+              <p style={{ color: "white", fontSize: "1.75rem", fontWeight: "700", margin: "0 0 4px 0" }}>{market.noOdds}%</p>
+              <p style={{ color: "#64748b", fontSize: "0.7rem", margin: 0 }}>{market.totalNoShares} shares</p>
             </div>
           </div>
 
-          {/* Pool Info */}
-          <div className="flex justify-between items-center mb-4 text-sm">
-            <span className="text-snow-400">Total Pool</span>
-            <span className="text-white font-medium">${market.totalPool} USDC</span>
+          {/* Info Row */}
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "16px", fontSize: "0.875rem" }}>
+            <span style={{ color: "#64748b" }}>Total Pool</span>
+            <span style={{ color: "#38bdf8", fontWeight: "600" }}>${market.totalPool} USDC</span>
           </div>
 
-          {/* Time Left */}
-          <div className="flex justify-between items-center mb-4 text-sm">
-            <span className="text-snow-400">Time Remaining</span>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "20px", fontSize: "0.875rem" }}>
+            <span style={{ color: "#64748b" }}>Time Left</span>
             {isExpired ? (
-              <span className="text-red-400 font-medium">Expired</span>
+              <span style={{ color: "#ef4444", fontWeight: "600" }}>Expired</span>
             ) : (
-              <span className="text-blue-400 font-medium">{daysLeft}d {hoursLeft}h</span>
+              <span style={{ color: "#a78bfa", fontWeight: "600" }}>{daysLeft} days</span>
             )}
           </div>
 
-          {/* Status Badge */}
-          <div className="flex justify-between items-center mb-4">
-            <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-              market.status === "Active"
-                ? "bg-green-900/50 text-green-400 border border-green-700"
-                : "bg-gray-900/50 text-gray-400 border border-gray-700"
-            }`}>
+          {/* Status */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+            <span style={{
+              padding: "4px 12px",
+              borderRadius: "20px",
+              fontSize: "0.75rem",
+              fontWeight: "600",
+              background: market.status === "Active" ? "rgba(16, 185, 129, 0.1)" : "rgba(100, 116, 139, 0.1)",
+              color: market.status === "Active" ? "#10b981" : "#64748b",
+              border: `1px solid ${market.status === "Active" ? "rgba(16, 185, 129, 0.3)" : "rgba(100, 116, 139, 0.3)"}`,
+            }}>
               {market.status}
             </span>
             {market.outcome !== "Undecided" && (
-              <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                market.outcome === "Yes"
-                  ? "bg-green-900/50 text-green-400"
-                  : "bg-red-900/50 text-red-400"
-              }`}>
+              <span style={{
+                padding: "4px 12px",
+                borderRadius: "20px",
+                fontSize: "0.75rem",
+                fontWeight: "600",
+                background: market.outcome === "Yes" ? "rgba(16, 185, 129, 0.1)" : "rgba(239, 68, 68, 0.1)",
+                color: market.outcome === "Yes" ? "#10b981" : "#ef4444",
+              }}>
                 Outcome: {market.outcome}
               </span>
             )}
@@ -154,22 +179,16 @@ export default function MarketCard({ market, onRefresh }: MarketCardProps) {
 
           {/* Buy Buttons */}
           {market.status === "Active" && !isExpired && (
-            <div className="grid grid-cols-2 gap-3">
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
               <button
-                onClick={() => {
-                  setBuyType("yes");
-                  setShowBuyModal(true);
-                }}
-                className="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
+                onClick={() => { setBuyType("yes"); setShowBuyModal(true); }}
+                className="btn-yes"
               >
                 Buy YES @ $0.50
               </button>
               <button
-                onClick={() => {
-                  setBuyType("no");
-                  setShowBuyModal(true);
-                }}
-                className="bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
+                onClick={() => { setBuyType("no"); setShowBuyModal(true); }}
+                className="btn-no"
               >
                 Buy NO @ $0.50
               </button>
@@ -180,52 +199,81 @@ export default function MarketCard({ market, onRefresh }: MarketCardProps) {
 
       {/* Buy Modal */}
       {showBuyModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-snow-800 rounded-xl border border-snow-700 max-w-md w-full p-6">
-            <h3 className="text-xl font-bold mb-4">
+        <div style={{
+          position: "fixed",
+          inset: 0,
+          background: "rgba(0,0,0,0.7)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 100,
+          padding: "16px",
+        }}>
+          <div className="glass-card" style={{ maxWidth: "400px", width: "100%", padding: "24px" }}>
+            <h3 style={{ fontSize: "1.25rem", fontWeight: "700", color: "white", marginBottom: "8px" }}>
               Buy {buyType.toUpperCase()} Shares
             </h3>
-            <p className="text-snow-400 mb-4">{market.resortName}</p>
+            <p style={{ color: "#64748b", marginBottom: "20px" }}>{market.resortName}</p>
 
-            <div className="mb-4">
-              <label className="block text-sm text-snow-400 mb-2">Number of Shares</label>
+            <div style={{ marginBottom: "20px" }}>
+              <label style={{ display: "block", fontSize: "0.875rem", color: "#94a3b8", marginBottom: "8px" }}>
+                Number of Shares
+              </label>
               <input
                 type="number"
                 min="1"
                 value={shareAmount}
                 onChange={(e) => setShareAmount(Math.max(1, parseInt(e.target.value) || 1))}
-                className="w-full bg-snow-900 border border-snow-700 rounded-lg px-4 py-3 text-white"
+                style={{
+                  width: "100%",
+                  background: "rgba(15, 30, 55, 0.8)",
+                  border: "1px solid rgba(100, 160, 220, 0.3)",
+                  borderRadius: "12px",
+                  padding: "12px 16px",
+                  color: "white",
+                  fontSize: "1rem",
+                }}
               />
             </div>
 
-            <div className="bg-snow-900 rounded-lg p-4 mb-6">
-              <div className="flex justify-between mb-2">
-                <span className="text-snow-400">Price per share</span>
-                <span className="text-white">$0.50 USDC</span>
+            <div style={{
+              background: "rgba(15, 30, 55, 0.8)",
+              borderRadius: "12px",
+              padding: "16px",
+              marginBottom: "24px",
+            }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
+                <span style={{ color: "#94a3b8" }}>Price per share</span>
+                <span style={{ color: "white" }}>$0.50 USDC</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-snow-400">Total cost</span>
-                <span className="text-white font-bold">${(shareAmount * 0.5).toFixed(2)} USDC</span>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ color: "#94a3b8" }}>Total cost</span>
+                <span style={{ color: "#38bdf8", fontWeight: "700" }}>${(shareAmount * 0.5).toFixed(2)} USDC</span>
               </div>
             </div>
 
-            <div className="flex gap-3">
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
               <button
                 onClick={() => setShowBuyModal(false)}
-                className="flex-1 bg-snow-700 hover:bg-snow-600 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
+                style={{
+                  background: "rgba(100, 116, 139, 0.2)",
+                  border: "1px solid rgba(100, 116, 139, 0.3)",
+                  color: "white",
+                  fontWeight: "600",
+                  padding: "12px",
+                  borderRadius: "12px",
+                  cursor: "pointer",
+                }}
               >
                 Cancel
               </button>
               <button
                 onClick={() => handleBuy(buyType === "yes")}
                 disabled={isPending || !account}
-                className={`flex-1 font-semibold py-3 px-4 rounded-lg transition-colors ${
-                  buyType === "yes"
-                    ? "bg-green-600 hover:bg-green-700"
-                    : "bg-red-600 hover:bg-red-700"
-                } text-white disabled:opacity-50`}
+                className={buyType === "yes" ? "btn-yes" : "btn-no"}
+                style={{ opacity: isPending || !account ? 0.5 : 1 }}
               >
-                {isPending ? "Processing..." : !account ? "Connect Wallet" : `Confirm ${buyType.toUpperCase()}`}
+                {isPending ? "Processing..." : !account ? "Connect Wallet" : `Confirm`}
               </button>
             </div>
           </div>

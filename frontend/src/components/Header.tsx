@@ -5,13 +5,27 @@ import { client, monadTestnet } from "@/lib/thirdweb";
 
 export default function Header() {
   return (
-    <header className="border-b border-snow-700 bg-snow-800/50 backdrop-blur-sm sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <span className="text-3xl">❄️</span>
+    <header style={{
+      borderBottom: "1px solid rgba(100, 160, 220, 0.2)",
+      background: "rgba(10, 22, 40, 0.8)",
+      backdropFilter: "blur(10px)",
+      position: "sticky",
+      top: 0,
+      zIndex: 50,
+    }}>
+      <div style={{
+        maxWidth: "1200px",
+        margin: "0 auto",
+        padding: "16px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <span style={{ fontSize: "2.5rem" }}>&#10052;</span>
           <div>
-            <h1 className="text-2xl font-bold text-white">PowGuess</h1>
-            <p className="text-sm text-snow-400">Snowfall Prediction Markets</p>
+            <h1 style={{ fontSize: "1.5rem", fontWeight: "700", color: "white", margin: 0 }}>PowGuess</h1>
+            <p style={{ fontSize: "0.75rem", color: "#64748b", margin: 0 }}>Snowfall Prediction Markets</p>
           </div>
         </div>
         <ConnectButton
@@ -20,11 +34,13 @@ export default function Header() {
           connectButton={{
             label: "Connect Wallet",
             style: {
-              backgroundColor: "#3b82f6",
+              background: "linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)",
               color: "white",
               padding: "10px 20px",
-              borderRadius: "8px",
+              borderRadius: "12px",
               fontWeight: "600",
+              border: "none",
+              cursor: "pointer",
             },
           }}
         />

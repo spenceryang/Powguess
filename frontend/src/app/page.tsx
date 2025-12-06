@@ -1,143 +1,157 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import Header from "@/components/Header";
 import MarketCard from "@/components/MarketCard";
 import { fetchMarkets, type Market } from "@/lib/api";
+
+function Snowflakes() {
+  const [flakes, setFlakes] = useState<Array<{ id: number; left: number; delay: number; duration: number }>>([]);
+
+  useEffect(() => {
+    const newFlakes = Array.from({ length: 30 }, (_, i) => ({
+      id: i,
+      left: Math.random() * 100,
+      delay: Math.random() * 10,
+      duration: 10 + Math.random() * 20,
+    }));
+    setFlakes(newFlakes);
+  }, []);
+
+  return (
+    <>
+      {flakes.map((flake) => (
+        <div
+          key={flake.id}
+          className="snowflake"
+          style={{
+            left: `${flake.left}%`,
+            animationDelay: `${flake.delay}s`,
+            animationDuration: `${flake.duration}s`,
+          }}
+        >
+          *
+        </div>
+      ))}
+    </>
+  );
+}
 
 export default function Home() {
   const { data: markets, isLoading, error, refetch } = useQuery<Market[]>({
     queryKey: ["markets"],
     queryFn: fetchMarkets,
-    refetchInterval: 30000, // Refresh every 30 seconds
+    refetchInterval: 30000,
   });
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-snow-900 to-snow-800">
+    <main style={{ minHeight: "100vh", position: "relative" }}>
+      <Snowflakes />
       <Header />
 
       {/* Hero Section */}
-      <section className="max-w-7xl mx-auto px-4 py-12 text-center">
-        <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
+      <section style={{ maxWidth: "1200px", margin: "0 auto", padding: "48px 16px", textAlign: "center", position: "relative", zIndex: 10 }}>
+        <h2 className="gradient-text" style={{ fontSize: "3rem", fontWeight: "800", marginBottom: "16px" }}>
           Predict the Powder
         </h2>
-        <p className="text-xl text-snow-400 max-w-2xl mx-auto mb-8">
-          Bet on snowfall at top ski resorts. Buy YES or NO shares at $0.50 each
-          and win if you predict correctly!
+        <p style={{ fontSize: "1.25rem", color: "#94a3b8", maxWidth: "600px", margin: "0 auto 32px" }}>
+          Bet on snowfall at top ski resorts. Buy YES or NO shares at $0.50 each and win if you predict correctly!
         </p>
-        <div className="flex flex-wrap justify-center gap-4 text-sm">
-          <div className="bg-snow-800 border border-snow-700 rounded-lg px-4 py-2">
-            <span className="text-snow-400">Fixed Price:</span>
-            <span className="text-white font-medium ml-2">$0.50/share</span>
+        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "16px" }}>
+          <div className="glass-card" style={{ padding: "12px 20px" }}>
+            <span style={{ color: "#94a3b8" }}>Fixed Price:</span>
+            <span style={{ color: "#38bdf8", fontWeight: "600", marginLeft: "8px" }}>$0.50/share</span>
           </div>
-          <div className="bg-snow-800 border border-snow-700 rounded-lg px-4 py-2">
-            <span className="text-snow-400">Network:</span>
-            <span className="text-blue-400 font-medium ml-2">Monad Testnet</span>
+          <div className="glass-card" style={{ padding: "12px 20px" }}>
+            <span style={{ color: "#94a3b8" }}>Network:</span>
+            <span style={{ color: "#a78bfa", fontWeight: "600", marginLeft: "8px" }}>Monad Testnet</span>
           </div>
-          <div className="bg-snow-800 border border-snow-700 rounded-lg px-4 py-2">
-            <span className="text-snow-400">Currency:</span>
-            <span className="text-green-400 font-medium ml-2">USDC</span>
+          <div className="glass-card" style={{ padding: "12px 20px" }}>
+            <span style={{ color: "#94a3b8" }}>Currency:</span>
+            <span style={{ color: "#4ade80", fontWeight: "600", marginLeft: "8px" }}>USDC</span>
           </div>
         </div>
       </section>
 
       {/* Markets Section */}
-      <section className="max-w-7xl mx-auto px-4 pb-12">
-        <div className="flex justify-between items-center mb-6">
-          <h3 className="text-2xl font-bold text-white">Active Markets</h3>
+      <section style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 16px 48px", position: "relative", zIndex: 10 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
+          <h3 style={{ fontSize: "1.5rem", fontWeight: "700", color: "white" }}>Active Markets</h3>
           <button
             onClick={() => refetch()}
-            className="bg-snow-700 hover:bg-snow-600 text-white px-4 py-2 rounded-lg transition-colors text-sm"
+            className="glass-card"
+            style={{ padding: "8px 16px", cursor: "pointer", color: "#38bdf8", border: "1px solid rgba(56, 189, 248, 0.3)" }}
           >
             Refresh
           </button>
         </div>
 
         {isLoading && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(350px, 1fr))", gap: "24px" }}>
             {[1, 2, 3, 4, 5].map((i) => (
-              <div
-                key={i}
-                className="bg-snow-800 rounded-xl border border-snow-700 h-96 animate-pulse"
-              />
+              <div key={i} className="glass-card" style={{ height: "400px", animation: "pulse 2s infinite" }} />
             ))}
           </div>
         )}
 
         {error && (
-          <div className="bg-red-900/30 border border-red-700 rounded-xl p-6 text-center">
-            <p className="text-red-400">Failed to load markets. Make sure the backend is running.</p>
-            <button
-              onClick={() => refetch()}
-              className="mt-4 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors"
-            >
+          <div className="glass-card" style={{ padding: "48px", textAlign: "center", borderColor: "rgba(239, 68, 68, 0.3)" }}>
+            <p style={{ color: "#f87171", marginBottom: "16px" }}>Failed to load markets. Make sure the backend is running.</p>
+            <button onClick={() => refetch()} className="btn-no">
               Try Again
             </button>
           </div>
         )}
 
         {markets && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(350px, 1fr))", gap: "24px" }}>
             {markets.map((market) => (
-              <MarketCard
-                key={market.id}
-                market={market}
-                onRefresh={() => refetch()}
-              />
+              <MarketCard key={market.id} market={market} onRefresh={() => refetch()} />
             ))}
-          </div>
-        )}
-
-        {markets && markets.length === 0 && (
-          <div className="bg-snow-800 border border-snow-700 rounded-xl p-12 text-center">
-            <p className="text-snow-400 text-lg">No markets available yet.</p>
-            <p className="text-snow-500 mt-2">Check back later or deploy the contracts!</p>
           </div>
         )}
       </section>
 
       {/* How It Works Section */}
-      <section className="max-w-7xl mx-auto px-4 py-12 border-t border-snow-700">
-        <h3 className="text-2xl font-bold text-white mb-8 text-center">How It Works</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="text-center">
-            <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-2xl">1</span>
+      <section style={{ maxWidth: "1200px", margin: "0 auto", padding: "48px 16px", borderTop: "1px solid rgba(100, 160, 220, 0.2)", position: "relative", zIndex: 10 }}>
+        <h3 style={{ fontSize: "1.5rem", fontWeight: "700", color: "white", textAlign: "center", marginBottom: "32px" }}>
+          How It Works
+        </h3>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: "32px" }}>
+          {[
+            { step: "1", title: "Choose a Resort", desc: "Pick from Mammoth, Palisades Tahoe, Jackson Hole, Snowbird, or Aspen" },
+            { step: "2", title: "Buy Shares", desc: "Buy YES if you think it will snow the target amount, NO if you don't" },
+            { step: "3", title: "Claim Winnings", desc: "When the market resolves, winners split the total pool proportionally" },
+          ].map((item) => (
+            <div key={item.step} style={{ textAlign: "center" }}>
+              <div style={{
+                width: "64px",
+                height: "64px",
+                background: "linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)",
+                borderRadius: "50%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                margin: "0 auto 16px",
+                fontSize: "1.5rem",
+                fontWeight: "700",
+              }}>
+                {item.step}
+              </div>
+              <h4 style={{ fontSize: "1.125rem", fontWeight: "600", color: "white", marginBottom: "8px" }}>{item.title}</h4>
+              <p style={{ color: "#94a3b8" }}>{item.desc}</p>
             </div>
-            <h4 className="text-lg font-semibold text-white mb-2">Choose a Resort</h4>
-            <p className="text-snow-400">
-              Pick from Mammoth, Palisades Tahoe, Jackson Hole, Snowbird, or Aspen
-            </p>
-          </div>
-          <div className="text-center">
-            <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-2xl">2</span>
-            </div>
-            <h4 className="text-lg font-semibold text-white mb-2">Buy Shares</h4>
-            <p className="text-snow-400">
-              Buy YES if you think it will snow the target amount, NO if you don't
-            </p>
-          </div>
-          <div className="text-center">
-            <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-2xl">3</span>
-            </div>
-            <h4 className="text-lg font-semibold text-white mb-2">Claim Winnings</h4>
-            <p className="text-snow-400">
-              When the market resolves, winners split the total pool proportionally
-            </p>
-          </div>
+          ))}
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-snow-700 py-8">
-        <div className="max-w-7xl mx-auto px-4 text-center text-snow-500">
-          <p>PowGuess - Built on Monad Testnet</p>
-          <p className="text-sm mt-2">
-            Weather data powered by OpenWeather | x402 micropayments enabled
-          </p>
-        </div>
+      <footer style={{ borderTop: "1px solid rgba(100, 160, 220, 0.2)", padding: "32px 16px", textAlign: "center", position: "relative", zIndex: 10 }}>
+        <p style={{ color: "#64748b" }}>PowGuess - Built on Monad Testnet</p>
+        <p style={{ color: "#475569", fontSize: "0.875rem", marginTop: "8px" }}>
+          Weather data powered by OpenWeather | x402 micropayments enabled
+        </p>
       </footer>
     </main>
   );
