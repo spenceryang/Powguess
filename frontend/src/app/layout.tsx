@@ -5,6 +5,7 @@ import { ThirdwebProvider } from "thirdweb/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
 import { BeerModeProvider } from "@/lib/BeerModeContext";
+import { ToastProvider } from "@/components/Toast";
 
 export default function RootLayout({
   children,
@@ -26,9 +27,11 @@ export default function RootLayout({
         <QueryClientProvider client={queryClient}>
           <ThirdwebProvider>
             <BeerModeProvider>
-              <div className="min-h-screen">
-                {children}
-              </div>
+              <ToastProvider>
+                <div className="min-h-screen">
+                  {children}
+                </div>
+              </ToastProvider>
             </BeerModeProvider>
           </ThirdwebProvider>
         </QueryClientProvider>

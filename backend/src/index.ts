@@ -114,6 +114,212 @@ interface PaymentRecord {
 
 const payments: PaymentRecord[] = [];
 
+// Beer voucher system
+interface BeerVoucher {
+  id: string;
+  walletAddress: string;
+  beers: number;
+  amountPaid: number;
+  resort: string;
+  createdAt: number;
+  redeemed: boolean;
+  redemptionCode: string;
+}
+
+const beerVouchers: BeerVoucher[] = [];
+const BEER_PRICE_USD = 9; // $9 per lodge beer
+
+// Dummy data for leaderboard demonstration
+const dummyVouchers: BeerVoucher[] = [
+  {
+    id: 'BEER-DEMO01',
+    walletAddress: '0x742d35cc6634c0532925a3b844bc454e4438f44e',
+    beers: 12,
+    amountPaid: 108,
+    resort: 'Mammoth Mountain',
+    createdAt: Date.now() - 86400000 * 5,
+    redeemed: true,
+    redemptionCode: 'DEMO-1234-5678-ABCD',
+  },
+  {
+    id: 'BEER-DEMO02',
+    walletAddress: '0x742d35cc6634c0532925a3b844bc454e4438f44e',
+    beers: 6,
+    amountPaid: 54,
+    resort: 'Jackson Hole',
+    createdAt: Date.now() - 86400000 * 3,
+    redeemed: false,
+    redemptionCode: 'DEMO-2345-6789-BCDE',
+  },
+  {
+    id: 'BEER-DEMO03',
+    walletAddress: '0x8ba1f109551bd432803012645ac136ddd64dba72',
+    beers: 8,
+    amountPaid: 72,
+    resort: 'Palisades Tahoe',
+    createdAt: Date.now() - 86400000 * 4,
+    redeemed: true,
+    redemptionCode: 'DEMO-3456-7890-CDEF',
+  },
+  {
+    id: 'BEER-DEMO04',
+    walletAddress: '0x8ba1f109551bd432803012645ac136ddd64dba72',
+    beers: 4,
+    amountPaid: 36,
+    resort: 'Snowbird',
+    createdAt: Date.now() - 86400000 * 2,
+    redeemed: true,
+    redemptionCode: 'DEMO-4567-8901-DEFG',
+  },
+  {
+    id: 'BEER-DEMO05',
+    walletAddress: '0x71c7656ec7ab88b098defb751b7401b5f6d8976f',
+    beers: 10,
+    amountPaid: 90,
+    resort: 'Aspen',
+    createdAt: Date.now() - 86400000 * 6,
+    redeemed: true,
+    redemptionCode: 'DEMO-5678-9012-EFGH',
+  },
+  {
+    id: 'BEER-DEMO06',
+    walletAddress: '0x71c7656ec7ab88b098defb751b7401b5f6d8976f',
+    beers: 3,
+    amountPaid: 27,
+    resort: 'Mammoth Mountain',
+    createdAt: Date.now() - 86400000 * 1,
+    redeemed: false,
+    redemptionCode: 'DEMO-6789-0123-FGHI',
+  },
+  {
+    id: 'BEER-DEMO07',
+    walletAddress: '0xfabb0ac9d68b0b445fb7357272ff202c5651694a',
+    beers: 5,
+    amountPaid: 45,
+    resort: 'Jackson Hole',
+    createdAt: Date.now() - 86400000 * 7,
+    redeemed: true,
+    redemptionCode: 'DEMO-7890-1234-GHIJ',
+  },
+  {
+    id: 'BEER-DEMO08',
+    walletAddress: '0x1cbd3b2770909d4e10f157cabc84c7264073c9ec',
+    beers: 7,
+    amountPaid: 63,
+    resort: 'Palisades Tahoe',
+    createdAt: Date.now() - 86400000 * 8,
+    redeemed: false,
+    redemptionCode: 'DEMO-8901-2345-HIJK',
+  },
+  {
+    id: 'BEER-DEMO09',
+    walletAddress: '0xb103a5867d1bf1a4239410c10ec968a5a190231e',
+    beers: 15,
+    amountPaid: 135,
+    resort: 'Mammoth Mountain',
+    createdAt: Date.now() - 86400000 * 2,
+    redeemed: true,
+    redemptionCode: 'DEMO-9012-3456-IJKL',
+  },
+  {
+    id: 'BEER-DEMO10',
+    walletAddress: '0xb103a5867d1bf1a4239410c10ec968a5a190231e',
+    beers: 4,
+    amountPaid: 36,
+    resort: 'Snowbird',
+    createdAt: Date.now() - 86400000 * 1,
+    redeemed: false,
+    redemptionCode: 'DEMO-0123-4567-JKLM',
+  },
+];
+
+// Initialize with dummy data
+beerVouchers.push(...dummyVouchers);
+
+// Leaderboard user nicknames (for display)
+const userNicknames: { [address: string]: string } = {
+  '0x742d35cc6634c0532925a3b844bc454e4438f44e': 'PowderHound',
+  '0x8ba1f109551bd432803012645ac136ddd64dba72': 'SkiBum42',
+  '0x71c7656ec7ab88b098defb751b7401b5f6d8976f': 'DeepSnowDave',
+  '0xfabb0ac9d68b0b445fb7357272ff202c5651694a': 'MogulMaster',
+  '0x1cbd3b2770909d4e10f157cabc84c7264073c9ec': 'FreshTracks',
+  '0xb103a5867d1bf1a4239410c10ec968a5a190231e': 'ApresSkiKing',
+};
+
+// Friends Circle System
+interface Friend {
+  address: string;
+  label: string;
+  addedAt: number;
+}
+
+interface UserCircle {
+  ownerAddress: string;
+  friends: Friend[];
+  createdAt: number;
+  updatedAt: number;
+}
+
+const userCircles: { [ownerAddress: string]: UserCircle } = {};
+
+// Demo circles with dummy data
+userCircles['0xb103a5867d1bf1a4239410c10ec968a5a190231e'] = {
+  ownerAddress: '0xb103a5867d1bf1a4239410c10ec968a5a190231e',
+  friends: [
+    { address: '0x742d35cc6634c0532925a3b844bc454e4438f44e', label: 'Jake (Tahoe Crew)', addedAt: Date.now() - 86400000 * 10 },
+    { address: '0x8ba1f109551bd432803012645ac136ddd64dba72', label: 'Mike (College Buddy)', addedAt: Date.now() - 86400000 * 8 },
+    { address: '0x71c7656ec7ab88b098defb751b7401b5f6d8976f', label: 'Sarah (Work Friend)', addedAt: Date.now() - 86400000 * 5 },
+  ],
+  createdAt: Date.now() - 86400000 * 10,
+  updatedAt: Date.now() - 86400000 * 1,
+};
+
+// Simulated positions for demo (in production, this would query the blockchain)
+interface SimulatedPosition {
+  marketId: number;
+  address: string;
+  yesShares: number;
+  noShares: number;
+}
+
+const simulatedPositions: SimulatedPosition[] = [
+  // Market 0 - Mammoth
+  { marketId: 0, address: '0x742d35cc6634c0532925a3b844bc454e4438f44e', yesShares: 10, noShares: 0 },
+  { marketId: 0, address: '0x8ba1f109551bd432803012645ac136ddd64dba72', yesShares: 0, noShares: 5 },
+  { marketId: 0, address: '0x71c7656ec7ab88b098defb751b7401b5f6d8976f', yesShares: 8, noShares: 2 },
+  { marketId: 0, address: '0xb103a5867d1bf1a4239410c10ec968a5a190231e', yesShares: 15, noShares: 0 },
+  // Market 1 - Palisades
+  { marketId: 1, address: '0x742d35cc6634c0532925a3b844bc454e4438f44e', yesShares: 5, noShares: 5 },
+  { marketId: 1, address: '0x8ba1f109551bd432803012645ac136ddd64dba72', yesShares: 12, noShares: 0 },
+  { marketId: 1, address: '0xb103a5867d1bf1a4239410c10ec968a5a190231e', yesShares: 0, noShares: 8 },
+  // Market 2 - Jackson Hole
+  { marketId: 2, address: '0x71c7656ec7ab88b098defb751b7401b5f6d8976f', yesShares: 20, noShares: 0 },
+  { marketId: 2, address: '0xfabb0ac9d68b0b445fb7357272ff202c5651694a', yesShares: 6, noShares: 0 },
+  { marketId: 2, address: '0xb103a5867d1bf1a4239410c10ec968a5a190231e', yesShares: 10, noShares: 5 },
+  // Market 3 - Snowbird
+  { marketId: 3, address: '0x742d35cc6634c0532925a3b844bc454e4438f44e', yesShares: 0, noShares: 15 },
+  { marketId: 3, address: '0x8ba1f109551bd432803012645ac136ddd64dba72', yesShares: 7, noShares: 0 },
+  // Market 4 - Aspen
+  { marketId: 4, address: '0x71c7656ec7ab88b098defb751b7401b5f6d8976f', yesShares: 0, noShares: 10 },
+  { marketId: 4, address: '0xb103a5867d1bf1a4239410c10ec968a5a190231e', yesShares: 5, noShares: 5 },
+];
+
+// Generate unique voucher ID
+const generateVoucherId = (): string => {
+  return 'BEER-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+};
+
+// Generate redemption code (looks like a gift card code)
+const generateRedemptionCode = (): string => {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+  for (let i = 0; i < 16; i++) {
+    if (i > 0 && i % 4 === 0) code += '-';
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+};
+
 // x402 Payment middleware (simplified)
 const x402Middleware = (priceUsd: number) => {
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -567,6 +773,514 @@ app.get('/api/forecast/:resort', async (req: Request, res: Response) => {
   }
 });
 
+// ========================================
+// x402 Beer Purchase Endpoints
+// ========================================
+
+// Buy beer with x402 payment - $9 per beer
+app.post('/api/buy-beer', x402Middleware(BEER_PRICE_USD), async (req: Request, res: Response) => {
+  const { walletAddress, resort, beers = 1 } = req.body;
+
+  if (!walletAddress || !ethers.isAddress(walletAddress)) {
+    res.status(400).json({ error: 'Valid wallet address required' });
+    return;
+  }
+
+  if (!resort) {
+    res.status(400).json({ error: 'Resort name required' });
+    return;
+  }
+
+  const numBeers = Math.max(1, Math.min(10, parseInt(beers) || 1)); // 1-10 beers per purchase
+  const totalCost = numBeers * BEER_PRICE_USD;
+
+  // Create voucher
+  const voucher: BeerVoucher = {
+    id: generateVoucherId(),
+    walletAddress: walletAddress.toLowerCase(),
+    beers: numBeers,
+    amountPaid: totalCost,
+    resort,
+    createdAt: Date.now(),
+    redeemed: false,
+    redemptionCode: generateRedemptionCode(),
+  };
+
+  beerVouchers.push(voucher);
+
+  // Track payment
+  payments.push({
+    address: walletAddress,
+    amount: totalCost,
+    timestamp: Date.now(),
+    endpoint: '/api/buy-beer',
+  });
+
+  res.json({
+    success: true,
+    voucher: {
+      id: voucher.id,
+      beers: voucher.beers,
+      resort: voucher.resort,
+      redemptionCode: voucher.redemptionCode,
+      totalPaid: `$${totalCost}`,
+      message: `Congratulations! You've purchased ${numBeers} lodge beer${numBeers > 1 ? 's' : ''} at ${resort}!`,
+      instructions: [
+        `Show this code at the ${resort} lodge bar`,
+        `Redemption Code: ${voucher.redemptionCode}`,
+        'Valid for any draft beer on tap',
+        'Must be 21+ to redeem',
+      ],
+    },
+    x402: {
+      protocol: 'x402',
+      amountCharged: totalCost,
+      currency: 'USD',
+    },
+  });
+});
+
+// Get beer price info (free - for UI display)
+app.get('/api/beer-price', (req: Request, res: Response) => {
+  res.json({
+    pricePerBeer: BEER_PRICE_USD,
+    currency: 'USD',
+    description: 'Ski lodge draft beer',
+    paymentProtocol: 'x402',
+    availableResorts: Object.keys(RESORT_DATA),
+  });
+});
+
+// Get vouchers for a wallet address
+app.get('/api/vouchers/:address', (req: Request, res: Response) => {
+  const walletAddress = req.params.address.toLowerCase();
+
+  if (!ethers.isAddress(walletAddress)) {
+    res.status(400).json({ error: 'Invalid wallet address' });
+    return;
+  }
+
+  const userVouchers = beerVouchers.filter(v => v.walletAddress === walletAddress);
+
+  res.json({
+    address: walletAddress,
+    vouchers: userVouchers.map(v => ({
+      id: v.id,
+      beers: v.beers,
+      resort: v.resort,
+      redemptionCode: v.redemptionCode,
+      redeemed: v.redeemed,
+      createdAt: new Date(v.createdAt).toISOString(),
+    })),
+    totalBeers: userVouchers.filter(v => !v.redeemed).reduce((sum, v) => sum + v.beers, 0),
+  });
+});
+
+// Redeem a voucher (for lodge operators)
+app.post('/api/vouchers/:id/redeem', (req: Request, res: Response) => {
+  const voucherId = req.params.id;
+  const { redemptionCode } = req.body;
+
+  const voucher = beerVouchers.find(v => v.id === voucherId);
+
+  if (!voucher) {
+    res.status(404).json({ error: 'Voucher not found' });
+    return;
+  }
+
+  if (voucher.redeemed) {
+    res.status(400).json({ error: 'Voucher already redeemed' });
+    return;
+  }
+
+  if (voucher.redemptionCode !== redemptionCode) {
+    res.status(400).json({ error: 'Invalid redemption code' });
+    return;
+  }
+
+  voucher.redeemed = true;
+
+  res.json({
+    success: true,
+    message: `Voucher redeemed! Serve ${voucher.beers} beer${voucher.beers > 1 ? 's' : ''}.`,
+    voucher: {
+      id: voucher.id,
+      beers: voucher.beers,
+      resort: voucher.resort,
+      redeemedAt: new Date().toISOString(),
+    },
+  });
+});
+
+// Beer Leaderboard endpoint
+app.get('/api/leaderboard', (req: Request, res: Response) => {
+  // Aggregate stats by wallet address
+  const userStats: { [address: string]: { totalBeers: number; redeemedBeers: number; pendingBeers: number; totalSpent: number; favoriteResort: string; resortCounts: { [resort: string]: number } } } = {};
+
+  beerVouchers.forEach((voucher) => {
+    const addr = voucher.walletAddress.toLowerCase();
+    if (!userStats[addr]) {
+      userStats[addr] = {
+        totalBeers: 0,
+        redeemedBeers: 0,
+        pendingBeers: 0,
+        totalSpent: 0,
+        favoriteResort: '',
+        resortCounts: {},
+      };
+    }
+
+    userStats[addr].totalBeers += voucher.beers;
+    userStats[addr].totalSpent += voucher.amountPaid;
+
+    if (voucher.redeemed) {
+      userStats[addr].redeemedBeers += voucher.beers;
+    } else {
+      userStats[addr].pendingBeers += voucher.beers;
+    }
+
+    // Track resort counts for favorite
+    userStats[addr].resortCounts[voucher.resort] = (userStats[addr].resortCounts[voucher.resort] || 0) + voucher.beers;
+  });
+
+  // Calculate favorite resort for each user
+  Object.keys(userStats).forEach((addr) => {
+    const resortCounts = userStats[addr].resortCounts;
+    let maxCount = 0;
+    let favoriteResort = '';
+    Object.entries(resortCounts).forEach(([resort, count]) => {
+      if (count > maxCount) {
+        maxCount = count;
+        favoriteResort = resort;
+      }
+    });
+    userStats[addr].favoriteResort = favoriteResort;
+  });
+
+  // Convert to leaderboard array and sort by total beers
+  const leaderboard = Object.entries(userStats)
+    .map(([address, stats]) => ({
+      rank: 0,
+      address,
+      nickname: userNicknames[address] || `Skier${address.slice(2, 6)}`,
+      totalBeers: stats.totalBeers,
+      redeemedBeers: stats.redeemedBeers,
+      pendingBeers: stats.pendingBeers,
+      totalSpent: stats.totalSpent,
+      favoriteResort: stats.favoriteResort,
+    }))
+    .sort((a, b) => b.totalBeers - a.totalBeers)
+    .map((entry, index) => ({ ...entry, rank: index + 1 }));
+
+  // Calculate global stats
+  const globalStats = {
+    totalUsers: leaderboard.length,
+    totalBeers: leaderboard.reduce((sum, u) => sum + u.totalBeers, 0),
+    totalRedeemed: leaderboard.reduce((sum, u) => sum + u.redeemedBeers, 0),
+    totalPending: leaderboard.reduce((sum, u) => sum + u.pendingBeers, 0),
+    totalSpent: leaderboard.reduce((sum, u) => sum + u.totalSpent, 0),
+  };
+
+  res.json({
+    leaderboard,
+    globalStats,
+    lastUpdated: new Date().toISOString(),
+  });
+});
+
+// ========================================
+// Friends Circle Endpoints
+// ========================================
+
+// Get user's friends circle
+app.get('/api/circles/:address', (req: Request, res: Response) => {
+  const ownerAddress = req.params.address.toLowerCase();
+
+  if (!ethers.isAddress(ownerAddress)) {
+    res.status(400).json({ error: 'Invalid wallet address' });
+    return;
+  }
+
+  const circle = userCircles[ownerAddress];
+
+  if (!circle) {
+    res.json({
+      ownerAddress,
+      friends: [],
+      createdAt: null,
+      updatedAt: null,
+    });
+    return;
+  }
+
+  // Enrich friends with nicknames if available
+  const enrichedFriends = circle.friends.map((friend) => ({
+    ...friend,
+    nickname: userNicknames[friend.address.toLowerCase()] || null,
+  }));
+
+  res.json({
+    ownerAddress: circle.ownerAddress,
+    friends: enrichedFriends,
+    createdAt: circle.createdAt,
+    updatedAt: circle.updatedAt,
+  });
+});
+
+// Add a friend to circle
+app.post('/api/circles/:address/friends', (req: Request, res: Response) => {
+  const ownerAddress = req.params.address.toLowerCase();
+  const { friendAddress, label } = req.body;
+
+  if (!ethers.isAddress(ownerAddress)) {
+    res.status(400).json({ error: 'Invalid owner address' });
+    return;
+  }
+
+  if (!friendAddress || !ethers.isAddress(friendAddress)) {
+    res.status(400).json({ error: 'Valid friend address required' });
+    return;
+  }
+
+  if (!label || typeof label !== 'string' || label.trim().length === 0) {
+    res.status(400).json({ error: 'Label required' });
+    return;
+  }
+
+  const normalizedFriendAddress = friendAddress.toLowerCase();
+
+  // Create circle if doesn't exist
+  if (!userCircles[ownerAddress]) {
+    userCircles[ownerAddress] = {
+      ownerAddress,
+      friends: [],
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    };
+  }
+
+  // Check if friend already exists
+  const existingFriend = userCircles[ownerAddress].friends.find(
+    (f) => f.address.toLowerCase() === normalizedFriendAddress
+  );
+
+  if (existingFriend) {
+    res.status(400).json({ error: 'Friend already in circle' });
+    return;
+  }
+
+  // Add friend
+  const newFriend: Friend = {
+    address: normalizedFriendAddress,
+    label: label.trim(),
+    addedAt: Date.now(),
+  };
+
+  userCircles[ownerAddress].friends.push(newFriend);
+  userCircles[ownerAddress].updatedAt = Date.now();
+
+  res.json({
+    success: true,
+    friend: {
+      ...newFriend,
+      nickname: userNicknames[normalizedFriendAddress] || null,
+    },
+  });
+});
+
+// Update a friend's label
+app.put('/api/circles/:address/friends/:friendAddress', (req: Request, res: Response) => {
+  const ownerAddress = req.params.address.toLowerCase();
+  const friendAddress = req.params.friendAddress.toLowerCase();
+  const { label } = req.body;
+
+  if (!ethers.isAddress(ownerAddress) || !ethers.isAddress(friendAddress)) {
+    res.status(400).json({ error: 'Invalid address' });
+    return;
+  }
+
+  if (!label || typeof label !== 'string' || label.trim().length === 0) {
+    res.status(400).json({ error: 'Label required' });
+    return;
+  }
+
+  const circle = userCircles[ownerAddress];
+  if (!circle) {
+    res.status(404).json({ error: 'Circle not found' });
+    return;
+  }
+
+  const friend = circle.friends.find((f) => f.address.toLowerCase() === friendAddress);
+  if (!friend) {
+    res.status(404).json({ error: 'Friend not found in circle' });
+    return;
+  }
+
+  friend.label = label.trim();
+  circle.updatedAt = Date.now();
+
+  res.json({
+    success: true,
+    friend: {
+      ...friend,
+      nickname: userNicknames[friendAddress] || null,
+    },
+  });
+});
+
+// Remove a friend from circle
+app.delete('/api/circles/:address/friends/:friendAddress', (req: Request, res: Response) => {
+  const ownerAddress = req.params.address.toLowerCase();
+  const friendAddress = req.params.friendAddress.toLowerCase();
+
+  if (!ethers.isAddress(ownerAddress) || !ethers.isAddress(friendAddress)) {
+    res.status(400).json({ error: 'Invalid address' });
+    return;
+  }
+
+  const circle = userCircles[ownerAddress];
+  if (!circle) {
+    res.status(404).json({ error: 'Circle not found' });
+    return;
+  }
+
+  const friendIndex = circle.friends.findIndex((f) => f.address.toLowerCase() === friendAddress);
+  if (friendIndex === -1) {
+    res.status(404).json({ error: 'Friend not found in circle' });
+    return;
+  }
+
+  circle.friends.splice(friendIndex, 1);
+  circle.updatedAt = Date.now();
+
+  res.json({ success: true });
+});
+
+// Get friends' positions for a specific market
+app.get('/api/circles/:address/positions/:marketId', async (req: Request, res: Response) => {
+  const ownerAddress = req.params.address.toLowerCase();
+  const marketId = parseInt(req.params.marketId);
+
+  if (!ethers.isAddress(ownerAddress)) {
+    res.status(400).json({ error: 'Invalid wallet address' });
+    return;
+  }
+
+  if (isNaN(marketId)) {
+    res.status(400).json({ error: 'Invalid market ID' });
+    return;
+  }
+
+  const circle = userCircles[ownerAddress];
+  if (!circle || circle.friends.length === 0) {
+    res.json({ marketId, friendPositions: [] });
+    return;
+  }
+
+  // Get positions for all friends (using simulated data for demo, would query blockchain in production)
+  const friendPositions = circle.friends.map((friend) => {
+    const position = simulatedPositions.find(
+      (p) => p.marketId === marketId && p.address.toLowerCase() === friend.address.toLowerCase()
+    );
+
+    return {
+      address: friend.address,
+      label: friend.label,
+      nickname: userNicknames[friend.address.toLowerCase()] || null,
+      yesShares: position?.yesShares || 0,
+      noShares: position?.noShares || 0,
+      netPosition: (position?.yesShares || 0) - (position?.noShares || 0),
+      hasPosition: position ? (position.yesShares > 0 || position.noShares > 0) : false,
+    };
+  });
+
+  // Sort by net position (most bullish first)
+  friendPositions.sort((a, b) => b.netPosition - a.netPosition);
+
+  res.json({
+    marketId,
+    friendPositions,
+    summary: {
+      totalFriends: friendPositions.length,
+      friendsWithPositions: friendPositions.filter((f) => f.hasPosition).length,
+      totalYesShares: friendPositions.reduce((sum, f) => sum + f.yesShares, 0),
+      totalNoShares: friendPositions.reduce((sum, f) => sum + f.noShares, 0),
+    },
+  });
+});
+
+// Get all positions for friends across all markets
+app.get('/api/circles/:address/all-positions', async (req: Request, res: Response) => {
+  const ownerAddress = req.params.address.toLowerCase();
+
+  if (!ethers.isAddress(ownerAddress)) {
+    res.status(400).json({ error: 'Invalid wallet address' });
+    return;
+  }
+
+  const circle = userCircles[ownerAddress];
+  if (!circle || circle.friends.length === 0) {
+    res.json({ positions: {} });
+    return;
+  }
+
+  // Group positions by market
+  const positionsByMarket: { [marketId: number]: Array<{
+    address: string;
+    label: string;
+    nickname: string | null;
+    yesShares: number;
+    noShares: number;
+    netPosition: number;
+  }> } = {};
+
+  circle.friends.forEach((friend) => {
+    const friendPositions = simulatedPositions.filter(
+      (p) => p.address.toLowerCase() === friend.address.toLowerCase()
+    );
+
+    friendPositions.forEach((pos) => {
+      if (!positionsByMarket[pos.marketId]) {
+        positionsByMarket[pos.marketId] = [];
+      }
+
+      positionsByMarket[pos.marketId].push({
+        address: friend.address,
+        label: friend.label,
+        nickname: userNicknames[friend.address.toLowerCase()] || null,
+        yesShares: pos.yesShares,
+        noShares: pos.noShares,
+        netPosition: pos.yesShares - pos.noShares,
+      });
+    });
+  });
+
+  res.json({ positions: positionsByMarket });
+});
+
+// x402 payment info endpoint (for wallets to know how to pay)
+app.get('/api/x402/info', (req: Request, res: Response) => {
+  res.json({
+    protocol: 'x402',
+    version: '1.0',
+    paymentAddress: process.env.PAYMENT_ADDRESS || '0xb103a5867d1bf1a4239410c10ec968a5a190231e',
+    paymentNetwork: 'monad-testnet',
+    chainId: 10143,
+    acceptedTokens: [
+      {
+        symbol: 'USDC',
+        address: MOCK_USDC_ADDRESS || '0xBDB5976d7a9712089c175e62790777EFFC885Eb6',
+        decimals: 6,
+      },
+    ],
+    endpoints: [
+      { path: '/api/buy-beer', method: 'POST', price: BEER_PRICE_USD, description: 'Buy a lodge beer' },
+      { path: '/api/markets/:id', method: 'GET', price: 0.001, description: 'Market details' },
+      { path: '/api/weather/:resort', method: 'GET', price: 0.01, description: 'Weather data' },
+    ],
+  });
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log(`
@@ -582,6 +1296,22 @@ app.listen(PORT, () => {
 ║  • GET  /api/weather/:resort  - Weather data ($0.01)     ║
 ║  • POST /api/markets/:id/settle - Settle market (admin)  ║
 ║  • GET  /api/contracts        - Contract addresses       ║
+║                                                          ║
+║  x402 Beer Purchase:                                     ║
+║  • POST /api/buy-beer         - Buy beer ($9 x402)       ║
+║  • GET  /api/beer-price       - Get beer price info      ║
+║  • GET  /api/vouchers/:addr   - Get user's vouchers      ║
+║  • POST /api/vouchers/:id/redeem - Redeem voucher        ║
+║  • GET  /api/x402/info        - x402 payment info        ║
+║  • GET  /api/leaderboard      - Beer leaderboard         ║
+║                                                          ║
+║  Friends Circle:                                         ║
+║  • GET  /api/circles/:addr    - Get friends circle       ║
+║  • POST /api/circles/:addr/friends - Add friend          ║
+║  • PUT  /api/circles/:addr/friends/:friend - Update      ║
+║  • DELETE /api/circles/:addr/friends/:friend - Remove    ║
+║  • GET  /api/circles/:addr/positions/:marketId           ║
+║  • GET  /api/circles/:addr/all-positions                 ║
 ╚══════════════════════════════════════════════════════════╝
   `);
 });

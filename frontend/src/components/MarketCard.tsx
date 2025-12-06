@@ -4,9 +4,10 @@ import { useState, useEffect } from "react";
 import { useActiveAccount, useSendTransaction } from "thirdweb/react";
 import { getContract, prepareContractCall } from "thirdweb";
 import { client, monadTestnet, SNOW_MARKET_ADDRESS, MOCK_USDC_ADDRESS } from "@/lib/thirdweb";
-import type { Market, ForecastData } from "@/lib/api";
-import { fetchForecast } from "@/lib/api";
+import type { Market, ForecastData, BeerVoucher, FriendPosition } from "@/lib/api";
+import { fetchForecast, buyBeer, fetchFriendPositions } from "@/lib/api";
 import { useBeerMode } from "@/lib/BeerModeContext";
+import { useToast } from "@/components/Toast";
 
 interface MarketCardProps {
   market: Market;
@@ -23,6 +24,20 @@ export default function MarketCard({ market, onRefresh }: MarketCardProps) {
   const [showForecast, setShowForecast] = useState(false);
   const [loadingForecast, setLoadingForecast] = useState(false);
   const { beerMode, toBeer } = useBeerMode();
+  const toast = useToast();
+
+  // Beer purchase state
+  const [showBeerModal, setShowBeerModal] = useState(false);
+  const [beerAmount, setBeerAmount] = useState(1);
+  const [buyingBeer, setBuyingBeer] = useState(false);
+  const [purchasedVoucher, setPurchasedVoucher] = useState<BeerVoucher | null>(null);
+  const BEER_PRICE = 9; // $9 per lodge beer
+
+  // Friends positions state
+  const [showFriends, setShowFriends] = useState(false);
+  const [friendPositions, setFriendPositions] = useState<FriendPosition[]>([]);
+  const [loadingFriends, setLoadingFriends] = useState(false);
+  const [friendsWithPositions, setFriendsWithPositions] = useState(0);
 
   const isExpired = market.resolutionTime * 1000 < Date.now();
   const timeLeft = market.resolutionTime * 1000 - Date.now();
@@ -48,19 +63,37 @@ export default function MarketCard({ market, onRefresh }: MarketCardProps) {
     loadForecast();
   }, [market.resortName]);
 
+  // Load friend positions when account is connected
+  useEffect(() => {
+    const loadFriendPositions = async () => {
+      if (!account?.address) return;
+      setLoadingFriends(true);
+      try {
+        const data = await fetchFriendPositions(account.address, market.id);
+        setFriendPositions(data.friendPositions);
+        setFriendsWithPositions(data.summary.friendsWithPositions);
+      } catch (error) {
+        console.error("Failed to load friend positions:", error);
+      } finally {
+        setLoadingFriends(false);
+      }
+    };
+    loadFriendPositions();
+  }, [account?.address, market.id]);
+
   const handleBuy = async (isYes: boolean) => {
     if (!account) {
-      alert("Please connect your wallet first");
+      toast.warning("Wallet Required", "Please connect your wallet first");
       return;
     }
 
     if (!SNOW_MARKET_ADDRESS || !MOCK_USDC_ADDRESS) {
-      alert("Contract addresses not configured. Check your .env.local file.");
+      toast.error("Configuration Error", "Contract addresses not configured. Check your .env.local file.");
       return;
     }
 
     if (shareAmount < 1) {
-      alert("Please enter at least 1 share");
+      toast.warning("Invalid Amount", "Please enter at least 1 share");
       return;
     }
 
@@ -105,35 +138,39 @@ export default function MarketCard({ market, onRefresh }: MarketCardProps) {
           sendTransaction(buyTx, {
             onSuccess: () => {
               console.log("Shares purchased successfully!");
+              toast.success(
+                "Shares Purchased!",
+                `Successfully bought ${shareAmount} ${buyType.toUpperCase()} share${shareAmount > 1 ? "s" : ""} for ${market.resortName}`
+              );
               setShowBuyModal(false);
               setShareAmount(1);
               onRefresh?.();
             },
             onError: (error) => {
               console.error("Buy transaction failed:", error);
-              alert(`Failed to buy shares: ${error.message || "Unknown error"}`);
+              toast.error("Transaction Failed", error.message || "Failed to buy shares");
             },
           });
         },
         onError: (error) => {
           console.error("Approval failed:", error);
-          alert(`Failed to approve USDC: ${error.message || "Unknown error"}`);
+          toast.error("Approval Failed", error.message || "Failed to approve USDC");
         },
       });
     } catch (error) {
       console.error("Transaction setup failed:", error);
-      alert(`Transaction failed: ${error instanceof Error ? error.message : "Unknown error"}`);
+      toast.error("Transaction Error", error instanceof Error ? error.message : "Unknown error");
     }
   };
 
   const handleClaim = async () => {
     if (!account) {
-      alert("Please connect your wallet first");
+      toast.warning("Wallet Required", "Please connect your wallet first");
       return;
     }
 
     if (!SNOW_MARKET_ADDRESS) {
-      alert("Contract address not configured");
+      toast.error("Configuration Error", "Contract address not configured");
       return;
     }
 
@@ -145,6 +182,7 @@ export default function MarketCard({ market, onRefresh }: MarketCardProps) {
       });
 
       console.log("Claiming winnings for market:", market.id);
+      toast.info("Processing Claim", "Submitting transaction to claim your winnings...");
 
       const claimTx = prepareContractCall({
         contract: marketContract,
@@ -155,17 +193,47 @@ export default function MarketCard({ market, onRefresh }: MarketCardProps) {
       sendTransaction(claimTx, {
         onSuccess: () => {
           console.log("Winnings claimed successfully!");
-          alert("Winnings claimed successfully!");
+          toast.success(
+            "Winnings Claimed!",
+            `Congratulations! Your winnings from ${market.resortName} have been claimed.`
+          );
           onRefresh?.();
         },
         onError: (error) => {
           console.error("Claim failed:", error);
-          alert(`Failed to claim: ${error.message || "Unknown error"}`);
+          toast.error("Claim Failed", error.message || "Failed to claim winnings");
         },
       });
     } catch (error) {
       console.error("Claim setup failed:", error);
-      alert(`Claim failed: ${error instanceof Error ? error.message : "Unknown error"}`);
+      toast.error("Claim Error", error instanceof Error ? error.message : "Unknown error");
+    }
+  };
+
+  // Handle beer purchase via x402
+  const handleBuyBeer = async () => {
+    if (!account) {
+      toast.warning("Wallet Required", "Please connect your wallet first");
+      return;
+    }
+
+    setBuyingBeer(true);
+    toast.info("Processing Purchase", "Buying your lodge beer via x402...");
+
+    try {
+      const result = await buyBeer(account.address, market.resortName, beerAmount);
+      setPurchasedVoucher(result.voucher);
+      setShowBeerModal(false);
+      setBeerAmount(1);
+      toast.success(
+        `${beerAmount} Beer${beerAmount > 1 ? "s" : ""} Purchased!`,
+        `Your redemption code: ${result.voucher.redemptionCode}`
+      );
+    } catch (error) {
+      console.error("Beer purchase failed:", error);
+      toast.error("Purchase Failed", error instanceof Error ? error.message : "Unknown error");
+    } finally {
+      setBuyingBeer(false);
     }
   };
 
@@ -428,6 +496,181 @@ export default function MarketCard({ market, onRefresh }: MarketCardProps) {
             </div>
           )}
 
+          {/* Friends Positions Toggle */}
+          {account && friendPositions.length > 0 && (
+            <>
+              <button
+                onClick={() => setShowFriends(!showFriends)}
+                style={{
+                  width: "100%",
+                  background: friendsWithPositions > 0 ? "rgba(167, 139, 250, 0.15)" : "rgba(100, 116, 139, 0.1)",
+                  border: friendsWithPositions > 0 ? "1px solid rgba(167, 139, 250, 0.3)" : "1px solid rgba(100, 116, 139, 0.3)",
+                  borderRadius: "12px",
+                  padding: "12px 16px",
+                  color: friendsWithPositions > 0 ? "#a78bfa" : "#64748b",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                  marginBottom: "16px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                }}
+              >
+                <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <span>👥</span>
+                  {loadingFriends ? "Loading friends..." : `Friends' Predictions`}
+                  {friendsWithPositions > 0 && (
+                    <span style={{
+                      background: "rgba(167, 139, 250, 0.3)",
+                      padding: "2px 8px",
+                      borderRadius: "10px",
+                      fontSize: "0.75rem",
+                    }}>
+                      {friendsWithPositions} active
+                    </span>
+                  )}
+                </span>
+                <span style={{ transform: showFriends ? "rotate(180deg)" : "rotate(0)", transition: "transform 0.2s" }}>▼</span>
+              </button>
+
+              {/* Friends Positions Section */}
+              {showFriends && (
+                <div style={{
+                  background: "rgba(15, 30, 55, 0.9)",
+                  borderRadius: "12px",
+                  padding: "16px",
+                  marginBottom: "20px",
+                  border: "1px solid rgba(167, 139, 250, 0.2)",
+                }}>
+                  <h4 style={{ color: "#a78bfa", fontSize: "0.8rem", fontWeight: "600", marginBottom: "12px", textTransform: "uppercase" }}>
+                    Your Circle&apos;s Positions
+                  </h4>
+
+                  {friendPositions.filter(f => f.hasPosition).length === 0 ? (
+                    <p style={{ color: "#64748b", fontSize: "0.85rem", textAlign: "center", padding: "12px 0" }}>
+                      None of your friends have positions in this market yet
+                    </p>
+                  ) : (
+                    <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                      {friendPositions.filter(f => f.hasPosition).map((friend) => (
+                        <div
+                          key={friend.address}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            padding: "10px 12px",
+                            background: friend.netPosition > 0
+                              ? "rgba(16, 185, 129, 0.1)"
+                              : friend.netPosition < 0
+                                ? "rgba(239, 68, 68, 0.1)"
+                                : "rgba(100, 116, 139, 0.1)",
+                            borderRadius: "8px",
+                            border: `1px solid ${
+                              friend.netPosition > 0
+                                ? "rgba(16, 185, 129, 0.3)"
+                                : friend.netPosition < 0
+                                  ? "rgba(239, 68, 68, 0.3)"
+                                  : "rgba(100, 116, 139, 0.3)"
+                            }`,
+                          }}
+                        >
+                          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                            <div
+                              style={{
+                                width: "32px",
+                                height: "32px",
+                                borderRadius: "50%",
+                                background: friend.netPosition > 0
+                                  ? "linear-gradient(135deg, #10b981 0%, #059669 100%)"
+                                  : friend.netPosition < 0
+                                    ? "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)"
+                                    : "linear-gradient(135deg, #64748b 0%, #475569 100%)",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                fontSize: "0.85rem",
+                                fontWeight: "700",
+                                color: "white",
+                              }}
+                            >
+                              {friend.label.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                              <p style={{ color: "white", fontWeight: "600", fontSize: "0.85rem", margin: 0 }}>
+                                {friend.label.split(" ")[0]}
+                                {friend.nickname && (
+                                  <span style={{ color: "#94a3b8", fontWeight: "400", marginLeft: "6px", fontSize: "0.75rem" }}>
+                                    ({friend.nickname})
+                                  </span>
+                                )}
+                              </p>
+                              <p style={{ color: "#64748b", fontSize: "0.7rem", margin: 0 }}>
+                                {friend.yesShares > 0 && <span style={{ color: "#10b981" }}>{friend.yesShares} YES</span>}
+                                {friend.yesShares > 0 && friend.noShares > 0 && <span> • </span>}
+                                {friend.noShares > 0 && <span style={{ color: "#ef4444" }}>{friend.noShares} NO</span>}
+                              </p>
+                            </div>
+                          </div>
+                          <div style={{ textAlign: "right" }}>
+                            <p style={{
+                              color: friend.netPosition > 0 ? "#10b981" : friend.netPosition < 0 ? "#ef4444" : "#94a3b8",
+                              fontWeight: "700",
+                              fontSize: "0.95rem",
+                              margin: 0,
+                            }}>
+                              {friend.netPosition > 0 ? "+" : ""}{friend.netPosition}
+                            </p>
+                            <p style={{ color: "#64748b", fontSize: "0.65rem", margin: 0 }}>
+                              net position
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Summary */}
+                  {friendPositions.filter(f => f.hasPosition).length > 0 && (
+                    <div style={{
+                      marginTop: "12px",
+                      padding: "10px",
+                      background: "rgba(0, 0, 0, 0.2)",
+                      borderRadius: "8px",
+                      display: "flex",
+                      justifyContent: "space-around",
+                      textAlign: "center",
+                    }}>
+                      <div>
+                        <p style={{ color: "#10b981", fontWeight: "700", fontSize: "1rem", margin: 0 }}>
+                          {friendPositions.reduce((sum, f) => sum + f.yesShares, 0)}
+                        </p>
+                        <p style={{ color: "#64748b", fontSize: "0.65rem", margin: 0 }}>Total YES</p>
+                      </div>
+                      <div>
+                        <p style={{ color: "#ef4444", fontWeight: "700", fontSize: "1rem", margin: 0 }}>
+                          {friendPositions.reduce((sum, f) => sum + f.noShares, 0)}
+                        </p>
+                        <p style={{ color: "#64748b", fontSize: "0.65rem", margin: 0 }}>Total NO</p>
+                      </div>
+                      <div>
+                        <p style={{
+                          color: friendPositions.reduce((sum, f) => sum + f.netPosition, 0) > 0 ? "#10b981" : friendPositions.reduce((sum, f) => sum + f.netPosition, 0) < 0 ? "#ef4444" : "#94a3b8",
+                          fontWeight: "700",
+                          fontSize: "1rem",
+                          margin: 0,
+                        }}>
+                          {friendPositions.reduce((sum, f) => sum + f.netPosition, 0) > 0 ? "Bullish" : friendPositions.reduce((sum, f) => sum + f.netPosition, 0) < 0 ? "Bearish" : "Neutral"}
+                        </p>
+                        <p style={{ color: "#64748b", fontSize: "0.65rem", margin: 0 }}>Circle Sentiment</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </>
+          )}
+
           {/* Buy Buttons */}
           {market.status === "Active" && !isExpired && (
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
@@ -482,6 +725,92 @@ export default function MarketCard({ market, onRefresh }: MarketCardProps) {
               }}>
                 {market.outcome === "Yes" ? "YES" : "NO"} wins! Claim your share of the pool.
               </p>
+
+              {/* Buy a Beer Button - x402 powered */}
+              <button
+                onClick={() => setShowBeerModal(true)}
+                disabled={!account}
+                style={{
+                  width: "100%",
+                  marginTop: "12px",
+                  background: "linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%)",
+                  color: "#1f2937",
+                  fontWeight: "700",
+                  padding: "14px 24px",
+                  borderRadius: "12px",
+                  border: "none",
+                  cursor: !account ? "not-allowed" : "pointer",
+                  opacity: !account ? 0.5 : 1,
+                  fontSize: "1rem",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px",
+                }}
+              >
+                <span style={{ fontSize: "1.25rem" }}>🍺</span>
+                Buy a Lodge Beer with Winnings
+              </button>
+              <p style={{
+                textAlign: "center",
+                color: "#fbbf24",
+                fontSize: "0.7rem",
+                marginTop: "6px",
+              }}>
+                Powered by x402 micropayments • $9 per beer
+              </p>
+            </div>
+          )}
+
+          {/* Display purchased voucher */}
+          {purchasedVoucher && (
+            <div style={{
+              marginTop: "16px",
+              background: "linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, rgba(245, 158, 11, 0.1) 100%)",
+              border: "2px solid #fbbf24",
+              borderRadius: "12px",
+              padding: "16px",
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
+                <span style={{ fontSize: "1.5rem" }}>🎫</span>
+                <h4 style={{ color: "#fbbf24", fontWeight: "700", margin: 0, fontSize: "1rem" }}>Beer Voucher</h4>
+              </div>
+              <p style={{ color: "white", fontSize: "0.9rem", marginBottom: "8px" }}>
+                {purchasedVoucher.message}
+              </p>
+              <div style={{
+                background: "rgba(0,0,0,0.3)",
+                borderRadius: "8px",
+                padding: "12px",
+                fontFamily: "monospace",
+                textAlign: "center",
+              }}>
+                <p style={{ color: "#94a3b8", fontSize: "0.7rem", margin: "0 0 4px 0" }}>Redemption Code</p>
+                <p style={{ color: "#fbbf24", fontSize: "1.25rem", fontWeight: "700", margin: 0, letterSpacing: "2px" }}>
+                  {purchasedVoucher.redemptionCode}
+                </p>
+              </div>
+              <ul style={{ color: "#94a3b8", fontSize: "0.75rem", marginTop: "12px", paddingLeft: "20px" }}>
+                {purchasedVoucher.instructions.map((inst, idx) => (
+                  <li key={idx} style={{ marginBottom: "4px" }}>{inst}</li>
+                ))}
+              </ul>
+              <button
+                onClick={() => setPurchasedVoucher(null)}
+                style={{
+                  width: "100%",
+                  marginTop: "12px",
+                  background: "rgba(100, 116, 139, 0.2)",
+                  border: "1px solid rgba(100, 116, 139, 0.3)",
+                  color: "#94a3b8",
+                  padding: "8px",
+                  borderRadius: "8px",
+                  cursor: "pointer",
+                  fontSize: "0.8rem",
+                }}
+              >
+                Dismiss
+              </button>
             </div>
           )}
         </div>
@@ -583,6 +912,170 @@ export default function MarketCard({ market, onRefresh }: MarketCardProps) {
                 style={{ opacity: isPending || !account ? 0.5 : 1 }}
               >
                 {isPending ? "Processing..." : !account ? "Connect Wallet" : `Confirm`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Beer Purchase Modal */}
+      {showBeerModal && (
+        <div style={{
+          position: "fixed",
+          inset: 0,
+          background: "rgba(0,0,0,0.7)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 100,
+          padding: "16px",
+        }}>
+          <div className="glass-card" style={{ maxWidth: "400px", width: "100%", padding: "24px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "8px" }}>
+              <span style={{ fontSize: "2rem" }}>🍺</span>
+              <h3 style={{ fontSize: "1.25rem", fontWeight: "700", color: "#fbbf24", margin: 0 }}>
+                Buy Lodge Beer
+              </h3>
+            </div>
+            <p style={{ color: "#64748b", marginBottom: "20px" }}>
+              Purchase beers at {market.resortName} with your winnings via x402 micropayments
+            </p>
+
+            <div style={{ marginBottom: "20px" }}>
+              <label style={{ display: "block", fontSize: "0.875rem", color: "#94a3b8", marginBottom: "8px" }}>
+                Number of Beers
+              </label>
+              <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                <button
+                  onClick={() => setBeerAmount(Math.max(1, beerAmount - 1))}
+                  style={{
+                    width: "44px",
+                    height: "44px",
+                    background: "rgba(251, 191, 36, 0.1)",
+                    border: "1px solid rgba(251, 191, 36, 0.3)",
+                    borderRadius: "8px",
+                    color: "#fbbf24",
+                    fontSize: "1.25rem",
+                    cursor: "pointer",
+                  }}
+                >
+                  -
+                </button>
+                <input
+                  type="number"
+                  min="1"
+                  max="10"
+                  value={beerAmount}
+                  onChange={(e) => setBeerAmount(Math.max(1, Math.min(10, parseInt(e.target.value) || 1)))}
+                  style={{
+                    flex: 1,
+                    background: "rgba(15, 30, 55, 0.8)",
+                    border: "1px solid rgba(251, 191, 36, 0.3)",
+                    borderRadius: "12px",
+                    padding: "12px 16px",
+                    color: "#fbbf24",
+                    fontSize: "1.25rem",
+                    fontWeight: "700",
+                    textAlign: "center",
+                  }}
+                />
+                <button
+                  onClick={() => setBeerAmount(Math.min(10, beerAmount + 1))}
+                  style={{
+                    width: "44px",
+                    height: "44px",
+                    background: "rgba(251, 191, 36, 0.1)",
+                    border: "1px solid rgba(251, 191, 36, 0.3)",
+                    borderRadius: "8px",
+                    color: "#fbbf24",
+                    fontSize: "1.25rem",
+                    cursor: "pointer",
+                  }}
+                >
+                  +
+                </button>
+              </div>
+              <p style={{ color: "#64748b", fontSize: "0.7rem", marginTop: "6px", textAlign: "center" }}>
+                Maximum 10 beers per purchase
+              </p>
+            </div>
+
+            <div style={{
+              background: "rgba(251, 191, 36, 0.1)",
+              borderRadius: "12px",
+              padding: "16px",
+              marginBottom: "24px",
+              border: "1px solid rgba(251, 191, 36, 0.2)",
+            }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
+                <span style={{ color: "#94a3b8" }}>Price per beer</span>
+                <span style={{ color: "#fbbf24" }}>${BEER_PRICE}.00</span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", paddingTop: "8px", borderTop: "1px solid rgba(251, 191, 36, 0.2)" }}>
+                <span style={{ color: "white", fontWeight: "600" }}>Total</span>
+                <span style={{ color: "#fbbf24", fontWeight: "700", fontSize: "1.25rem" }}>
+                  ${beerAmount * BEER_PRICE}.00
+                </span>
+              </div>
+            </div>
+
+            {/* x402 Info */}
+            <div style={{
+              background: "rgba(56, 189, 248, 0.1)",
+              borderRadius: "8px",
+              padding: "12px",
+              marginBottom: "20px",
+              border: "1px solid rgba(56, 189, 248, 0.2)",
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
+                <span style={{ fontSize: "0.875rem" }}>⚡</span>
+                <span style={{ color: "#38bdf8", fontSize: "0.8rem", fontWeight: "600" }}>x402 Payment Protocol</span>
+              </div>
+              <p style={{ color: "#64748b", fontSize: "0.7rem", margin: 0 }}>
+                Instant micropayment processed on Monad Testnet. You&apos;ll receive a redemption code for your beer voucher.
+              </p>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+              <button
+                onClick={() => setShowBeerModal(false)}
+                style={{
+                  background: "rgba(100, 116, 139, 0.2)",
+                  border: "1px solid rgba(100, 116, 139, 0.3)",
+                  color: "white",
+                  fontWeight: "600",
+                  padding: "12px",
+                  borderRadius: "12px",
+                  cursor: "pointer",
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleBuyBeer}
+                disabled={buyingBeer || !account}
+                style={{
+                  background: "linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%)",
+                  color: "#1f2937",
+                  fontWeight: "700",
+                  padding: "12px",
+                  borderRadius: "12px",
+                  border: "none",
+                  cursor: buyingBeer || !account ? "not-allowed" : "pointer",
+                  opacity: buyingBeer || !account ? 0.5 : 1,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px",
+                }}
+              >
+                {buyingBeer ? (
+                  <>Processing...</>
+                ) : (
+                  <>
+                    <span>🍺</span> Buy {beerAmount} Beer{beerAmount > 1 ? "s" : ""}
+                  </>
+                )}
               </button>
             </div>
           </div>

@@ -26,10 +26,11 @@ A prediction market platform where users bet on snowfall at ski resorts using bl
 - **Prediction Markets**: Bet on whether ski resorts will receive target snowfall amounts
 - **Fixed-Price Shares**: YES/NO shares always cost $0.50 USDC each
 - **Beer Mode**: Toggle to view all prices in ski lodge beers instead of USDC (for the true powder hounds)
+- **Buy Beer with Winnings**: Convert your USDC winnings into lodge beer vouchers via x402 micropayments
 - **Weather Forecasts**: Live snow forecasts with 24h/48h/7-day predictions
 - **Resort Webcams**: Direct links to live webcams at each resort
 - **Weather Integration**: Real-time weather data from OpenWeather API
-- **x402 Micropayments**: Pay-per-query for detailed market and weather data
+- **x402 Micropayments**: Pay-per-query for detailed market and weather data + beer purchases
 - **Wallet Integration**: Connect via Thirdweb SDK + MetaMask
 
 ## Supported Resorts
@@ -232,8 +233,59 @@ To settle a market with actual snowfall data:
 The API uses x402 micropayments for premium endpoints:
 - Market details: $0.001 per query
 - Weather data: $0.01 per query
+- **Buy Beer**: $9.00 per lodge beer
 
 For development, `SKIP_PAYMENTS=true` is set by default.
+
+## x402 Beer Purchase
+
+Winners can convert their USDC winnings into lodge beer vouchers using x402 micropayments!
+
+### How It Works
+
+1. **Win a Prediction**: Correctly predict snowfall and claim your USDC winnings
+2. **Buy Beer**: Click "Buy a Lodge Beer with Winnings" button
+3. **Get Voucher**: Receive a redemption code for beers at the resort
+4. **Redeem at Lodge**: Show your code at the ski lodge bar
+
+### API Endpoints
+
+| Endpoint | Method | Price | Description |
+|----------|--------|-------|-------------|
+| `/api/buy-beer` | POST | $9/beer | Purchase beer voucher via x402 |
+| `/api/beer-price` | GET | Free | Get beer pricing info |
+| `/api/vouchers/:address` | GET | Free | Get user's vouchers |
+| `/api/vouchers/:id/redeem` | POST | Free | Redeem a voucher |
+| `/api/x402/info` | GET | Free | x402 payment protocol info |
+
+### Example Beer Purchase
+
+```bash
+curl -X POST http://localhost:3001/api/buy-beer \
+  -H "Content-Type: application/json" \
+  -H "x-402-payment: demo-bypass" \
+  -d '{"walletAddress": "0x...", "resort": "Mammoth Mountain", "beers": 2}'
+```
+
+Response:
+```json
+{
+  "success": true,
+  "voucher": {
+    "id": "BEER-ABC123",
+    "beers": 2,
+    "resort": "Mammoth Mountain",
+    "redemptionCode": "ZK38-8DU7-QZQK-BN3K",
+    "totalPaid": "$18",
+    "message": "Congratulations! You've purchased 2 lodge beers at Mammoth Mountain!"
+  },
+  "x402": {
+    "protocol": "x402",
+    "amountCharged": 18,
+    "currency": "USD"
+  }
+}
+```
 
 ## Getting Test USDC
 
