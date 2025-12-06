@@ -30,6 +30,34 @@ export interface WeatherData {
   source: string;
 }
 
+export interface Webcam {
+  name: string;
+  url: string;
+  embedUrl?: string;
+}
+
+export interface ForecastData {
+  resort: string;
+  elevation: number;
+  webcams: Webcam[];
+  website: string;
+  current: {
+    temp: number;
+    conditions: string;
+    windSpeed: number;
+    humidity: number;
+  };
+  forecast: {
+    snow24h: number;
+    snow48h: number;
+    snow7d?: number;
+    snow5d?: number;
+    trend: string;
+  };
+  lastUpdated: string;
+  source: string;
+}
+
 export async function fetchMarkets(): Promise<Market[]> {
   const res = await fetch(`${API_URL}/api/markets`);
   if (!res.ok) throw new Error("Failed to fetch markets");
@@ -76,5 +104,11 @@ export async function fetchContracts(): Promise<{
 }> {
   const res = await fetch(`${API_URL}/api/contracts`);
   if (!res.ok) throw new Error("Failed to fetch contracts");
+  return res.json();
+}
+
+export async function fetchForecast(resort: string): Promise<ForecastData> {
+  const res = await fetch(`${API_URL}/api/forecast/${encodeURIComponent(resort)}`);
+  if (!res.ok) throw new Error("Failed to fetch forecast");
   return res.json();
 }

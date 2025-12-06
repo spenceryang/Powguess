@@ -21,14 +21,77 @@ const RPC_URL = process.env.MONAD_RPC_URL || 'https://testnet-rpc.monad.xyz';
 // OpenWeather API
 const OPENWEATHER_API_KEY = process.env.OPENWEATHER_API_KEY || '';
 
-// Resort coordinates for weather lookup
-const RESORT_COORDS: { [key: string]: { lat: number; lon: number } } = {
-  'Mammoth Mountain': { lat: 37.6308, lon: -119.0326 },
-  'Palisades Tahoe': { lat: 39.1969, lon: -120.2358 },
-  'Jackson Hole': { lat: 43.5875, lon: -110.8279 },
-  'Snowbird': { lat: 40.5830, lon: -111.6538 },
-  'Aspen': { lat: 39.1911, lon: -106.8175 },
+// Resort data including coordinates and webcam URLs
+interface ResortInfo {
+  lat: number;
+  lon: number;
+  elevation: number;
+  webcams: { name: string; url: string; embedUrl?: string }[];
+  website: string;
+}
+
+const RESORT_DATA: { [key: string]: ResortInfo } = {
+  'Mammoth Mountain': {
+    lat: 37.6308,
+    lon: -119.0326,
+    elevation: 11053,
+    webcams: [
+      { name: 'Main Lodge', url: 'https://www.mammothmountain.com/mountain-information/webcams', embedUrl: 'https://www.mammothmountain.com/webcams/main-lodge' },
+      { name: 'Village Gondola', url: 'https://www.mammothmountain.com/mountain-information/webcams' },
+      { name: 'McCoy Station', url: 'https://www.mammothmountain.com/mountain-information/webcams' },
+    ],
+    website: 'https://www.mammothmountain.com',
+  },
+  'Palisades Tahoe': {
+    lat: 39.1969,
+    lon: -120.2358,
+    elevation: 8200,
+    webcams: [
+      { name: 'High Camp', url: 'https://www.palisadestahoe.com/mountain-information/webcams' },
+      { name: 'Base Area', url: 'https://www.palisadestahoe.com/mountain-information/webcams' },
+      { name: 'KT-22', url: 'https://www.palisadestahoe.com/mountain-information/webcams' },
+    ],
+    website: 'https://www.palisadestahoe.com',
+  },
+  'Jackson Hole': {
+    lat: 43.5875,
+    lon: -110.8279,
+    elevation: 10450,
+    webcams: [
+      { name: 'Teton Village', url: 'https://www.jacksonhole.com/webcams' },
+      { name: 'Corbet\'s Cabin', url: 'https://www.jacksonhole.com/webcams' },
+      { name: 'Rendezvous Bowl', url: 'https://www.jacksonhole.com/webcams' },
+    ],
+    website: 'https://www.jacksonhole.com',
+  },
+  'Snowbird': {
+    lat: 40.5830,
+    lon: -111.6538,
+    elevation: 11000,
+    webcams: [
+      { name: 'Hidden Peak', url: 'https://www.snowbird.com/mountain-report/#checks-cameras' },
+      { name: 'Entry 1', url: 'https://www.snowbird.com/mountain-report/#checks-cameras' },
+      { name: 'Mineral Basin', url: 'https://www.snowbird.com/mountain-report/#checks-cameras' },
+    ],
+    website: 'https://www.snowbird.com',
+  },
+  'Aspen': {
+    lat: 39.1911,
+    lon: -106.8175,
+    elevation: 11212,
+    webcams: [
+      { name: 'Aspen Mountain', url: 'https://www.aspensnowmass.com/our-mountains/aspen-mountain/webcams' },
+      { name: 'Snowmass Base', url: 'https://www.aspensnowmass.com/our-mountains/snowmass/webcams' },
+      { name: 'Highland Bowl', url: 'https://www.aspensnowmass.com/our-mountains/aspen-highlands/webcams' },
+    ],
+    website: 'https://www.aspensnowmass.com',
+  },
 };
+
+// Legacy coords accessor for backwards compatibility
+const RESORT_COORDS: { [key: string]: { lat: number; lon: number } } = Object.fromEntries(
+  Object.entries(RESORT_DATA).map(([name, data]) => [name, { lat: data.lat, lon: data.lon }])
+);
 
 // Contract ABI (minimal for reading)
 const SNOW_MARKET_ABI = [
@@ -385,6 +448,123 @@ app.get('/api/contracts', (req: Request, res: Response) => {
     chainId: 10143,
     rpcUrl: RPC_URL,
   });
+});
+
+// Get resort info including webcams (free)
+app.get('/api/resort/:resort', (req: Request, res: Response) => {
+  const resortName = decodeURIComponent(req.params.resort);
+  const resortInfo = RESORT_DATA[resortName];
+
+  if (!resortInfo) {
+    res.status(404).json({ error: 'Resort not found', availableResorts: Object.keys(RESORT_DATA) });
+    return;
+  }
+
+  res.json({
+    name: resortName,
+    elevation: resortInfo.elevation,
+    coordinates: { lat: resortInfo.lat, lon: resortInfo.lon },
+    webcams: resortInfo.webcams,
+    website: resortInfo.website,
+  });
+});
+
+// Get all resorts info (free)
+app.get('/api/resorts', (req: Request, res: Response) => {
+  const resorts = Object.entries(RESORT_DATA).map(([name, data]) => ({
+    name,
+    elevation: data.elevation,
+    coordinates: { lat: data.lat, lon: data.lon },
+    webcams: data.webcams,
+    website: data.website,
+  }));
+  res.json({ resorts });
+});
+
+// Combined weather + resort info endpoint (free)
+app.get('/api/forecast/:resort', async (req: Request, res: Response) => {
+  const resortName = decodeURIComponent(req.params.resort);
+  const resortInfo = RESORT_DATA[resortName];
+
+  if (!resortInfo) {
+    res.status(404).json({ error: 'Resort not found', availableResorts: Object.keys(RESORT_DATA) });
+    return;
+  }
+
+  // If no API key, return mock weather data
+  if (!OPENWEATHER_API_KEY) {
+    const mockSnow24h = Math.random() * 8;
+    const mockSnow48h = mockSnow24h + Math.random() * 6;
+    const mockSnow7d = mockSnow48h + Math.random() * 12;
+
+    res.json({
+      resort: resortName,
+      elevation: resortInfo.elevation,
+      webcams: resortInfo.webcams,
+      website: resortInfo.website,
+      current: {
+        temp: Math.round(20 + Math.random() * 15), // 20-35°F
+        conditions: ['Snow', 'Light Snow', 'Heavy Snow', 'Partly Cloudy', 'Clear'][Math.floor(Math.random() * 5)],
+        windSpeed: Math.round(5 + Math.random() * 20),
+        humidity: Math.round(50 + Math.random() * 40),
+      },
+      forecast: {
+        snow24h: parseFloat(mockSnow24h.toFixed(1)),
+        snow48h: parseFloat(mockSnow48h.toFixed(1)),
+        snow7d: parseFloat(mockSnow7d.toFixed(1)),
+        trend: mockSnow7d > 10 ? 'Heavy snow expected' : mockSnow7d > 5 ? 'Moderate snow expected' : 'Light snow expected',
+      },
+      lastUpdated: new Date().toISOString(),
+      source: 'mock-data',
+    });
+    return;
+  }
+
+  try {
+    // Get current weather and 5-day forecast from OpenWeatherMap
+    const [currentRes, forecastRes] = await Promise.all([
+      axios.get(`https://api.openweathermap.org/data/2.5/weather?lat=${resortInfo.lat}&lon=${resortInfo.lon}&appid=${OPENWEATHER_API_KEY}&units=imperial`),
+      axios.get(`https://api.openweathermap.org/data/2.5/forecast?lat=${resortInfo.lat}&lon=${resortInfo.lon}&appid=${OPENWEATHER_API_KEY}&units=imperial`),
+    ]);
+
+    // Calculate snowfall totals
+    let snow24h = 0;
+    let snow48h = 0;
+    let snow5d = 0;
+
+    forecastRes.data.list.forEach((item: any, idx: number) => {
+      const snowMm = item.snow?.['3h'] || 0;
+      const snowInches = snowMm / 25.4;
+
+      if (idx < 8) snow24h += snowInches;
+      if (idx < 16) snow48h += snowInches;
+      snow5d += snowInches;
+    });
+
+    res.json({
+      resort: resortName,
+      elevation: resortInfo.elevation,
+      webcams: resortInfo.webcams,
+      website: resortInfo.website,
+      current: {
+        temp: Math.round(currentRes.data.main.temp),
+        conditions: currentRes.data.weather[0]?.description || 'Unknown',
+        windSpeed: Math.round(currentRes.data.wind?.speed || 0),
+        humidity: currentRes.data.main.humidity,
+      },
+      forecast: {
+        snow24h: parseFloat(snow24h.toFixed(1)),
+        snow48h: parseFloat(snow48h.toFixed(1)),
+        snow5d: parseFloat(snow5d.toFixed(1)),
+        trend: snow5d > 10 ? 'Heavy snow expected' : snow5d > 5 ? 'Moderate snow expected' : 'Light snow expected',
+      },
+      lastUpdated: new Date().toISOString(),
+      source: 'openweathermap',
+    });
+  } catch (error) {
+    console.error('Forecast API error:', error);
+    res.status(500).json({ error: 'Failed to fetch forecast data' });
+  }
 });
 
 // Start server
