@@ -121,7 +121,12 @@ export default function MarketCard({ market, onRefresh }: MarketCardProps) {
 
       sendTransaction(approveTx, {
         onSuccess: async () => {
-          console.log("USDC approved, now buying shares...");
+          console.log("USDC approved, waiting before buying shares...");
+
+          // Wait 2 seconds to avoid rate limiting
+          await new Promise(resolve => setTimeout(resolve, 2000));
+
+          console.log("Now buying shares...");
           console.log("Buying shares:", {
             marketId: market.id,
             resortName: market.resortName,
