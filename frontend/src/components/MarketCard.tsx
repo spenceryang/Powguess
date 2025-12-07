@@ -570,6 +570,7 @@ export default function MarketCard({ market, onRefresh }: MarketCardProps) {
                       {friendPositions.filter(f => f.hasPosition).map((friend) => (
                         <div
                           key={friend.address}
+                          className="mobile-friend-position"
                           style={{
                             display: "flex",
                             alignItems: "center",

@@ -210,6 +210,24 @@ body {
     justify-content: center;
   }
 
+  /* Friend positions in MarketCard - wrap on mobile for copy trading */
+  .mobile-friend-position {
+    flex-wrap: wrap;
+    gap: 8px !important;
+  }
+
+  .mobile-friend-position > div:last-child {
+    width: 100%;
+    justify-content: space-between;
+    margin-top: 4px;
+  }
+
+  .mobile-friend-position > div:last-child button {
+    min-height: 36px;
+    padding: 8px 14px !important;
+    font-size: 0.8rem !important;
+  }
+
   /* Leaderboard adjustments */
   .mobile-leaderboard-stats {
     grid-template-columns: repeat(2, 1fr) !important;
