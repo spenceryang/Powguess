@@ -843,7 +843,7 @@ export default function MarketCard({ market, onRefresh }: MarketCardProps) {
           zIndex: 100,
           padding: "16px",
         }}>
-          <div className="glass-card" style={{ maxWidth: "400px", width: "100%", padding: "24px" }}>
+          <div className="glass-card mobile-modal" style={{ maxWidth: "400px", width: "100%", padding: "24px" }}>
             <h3 style={{ fontSize: "1.25rem", fontWeight: "700", color: "white", marginBottom: "8px" }}>
               Buy {buyType.toUpperCase()} Shares
             </h3>
@@ -945,7 +945,7 @@ export default function MarketCard({ market, onRefresh }: MarketCardProps) {
           zIndex: 100,
           padding: "16px",
         }}>
-          <div className="glass-card" style={{ maxWidth: "400px", width: "100%", padding: "24px" }}>
+          <div className="glass-card mobile-modal" style={{ maxWidth: "400px", width: "100%", padding: "24px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "8px" }}>
               <span style={{ fontSize: "2rem" }}>🍺</span>
               <h3 style={{ fontSize: "1.25rem", fontWeight: "700", color: "#fbbf24", margin: 0 }}>

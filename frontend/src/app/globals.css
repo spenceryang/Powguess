@@ -114,3 +114,166 @@ body {
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+  /* Header adjustments */
+  .mobile-header {
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px !important;
+  }
+
+  .mobile-header-actions {
+    width: 100%;
+    justify-content: space-between !important;
+  }
+
+  /* Tab navigation - horizontal scroll on mobile */
+  .mobile-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding-bottom: 8px;
+  }
+
+  .mobile-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .mobile-tab-btn {
+    white-space: nowrap;
+    padding: 10px 16px !important;
+    font-size: 0.85rem !important;
+  }
+
+  /* Cards grid - single column on mobile */
+  .mobile-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  /* Hero section adjustments */
+  .mobile-hero {
+    padding: 24px 12px !important;
+  }
+
+  .mobile-hero h2 {
+    font-size: 2rem !important;
+  }
+
+  .mobile-hero p {
+    font-size: 1rem !important;
+  }
+
+  /* Stats chips */
+  .mobile-stats {
+    flex-direction: column;
+    gap: 8px !important;
+  }
+
+  .mobile-stats > div {
+    width: 100%;
+    text-align: center;
+  }
+
+  /* Button adjustments */
+  .btn-yes, .btn-no {
+    padding: 10px 16px;
+    font-size: 0.9rem;
+  }
+
+  /* Modal adjustments */
+  .mobile-modal {
+    width: 95% !important;
+    max-width: 95% !important;
+    margin: 10px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  /* Friends circle adjustments */
+  .mobile-friend-card {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 12px;
+  }
+
+  .mobile-friend-header {
+    flex-direction: column;
+    align-items: stretch !important;
+  }
+
+  .mobile-friend-header button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Leaderboard adjustments */
+  .mobile-leaderboard-stats {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+    padding: 12px 16px !important;
+  }
+
+  .mobile-leaderboard-row {
+    grid-template-columns: 40px 1fr 60px !important;
+    gap: 8px !important;
+    padding: 10px 12px !important;
+  }
+
+  .hide-on-mobile {
+    display: none !important;
+  }
+
+  /* How it works section */
+  .mobile-how-it-works {
+    grid-template-columns: 1fr !important;
+    gap: 24px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Extra small screens */
+  .mobile-header-logo h1 {
+    font-size: 1.25rem !important;
+  }
+
+  .mobile-header-logo p {
+    display: none;
+  }
+
+  .mobile-hero h2 {
+    font-size: 1.75rem !important;
+  }
+
+  .mobile-tab-btn {
+    padding: 8px 12px !important;
+    font-size: 0.8rem !important;
+  }
+
+  .mobile-tab-btn span:first-child {
+    display: none;
+  }
+
+  .hide-on-small {
+    display: none !important;
+  }
+
+  /* Leaderboard extra small */
+  .mobile-leaderboard-row {
+    grid-template-columns: 35px 1fr 50px !important;
+  }
+}
+
+/* Touch-friendly improvements */
+@media (hover: none) and (pointer: coarse) {
+  button, a, input, select {
+    min-height: 44px;
+  }
+
+  input[type="number"] {
+    font-size: 16px; /* Prevents iOS zoom on input focus */
+  }
+}

@@ -89,7 +89,7 @@ export default function Leaderboard() {
 
       {/* Global Stats */}
       {globalStats && (
-        <div style={{
+        <div className="mobile-leaderboard-stats" style={{
           display: "grid",
           gridTemplateColumns: "repeat(4, 1fr)",
           gap: "12px",
@@ -135,6 +135,7 @@ export default function Leaderboard() {
             {leaderboard.map((entry) => (
               <div
                 key={entry.address}
+                className="mobile-leaderboard-row"
                 style={{
                   display: "grid",
                   gridTemplateColumns: "50px 1fr 80px 80px 100px",
@@ -208,7 +209,7 @@ export default function Leaderboard() {
                 </div>
 
                 {/* Redeemed */}
-                <div style={{ textAlign: "center" }}>
+                <div className="hide-on-mobile" style={{ textAlign: "center" }}>
                   <p style={{
                     fontSize: "1rem",
                     fontWeight: "600",
@@ -221,7 +222,7 @@ export default function Leaderboard() {
                 </div>
 
                 {/* Total Spent */}
-                <div style={{ textAlign: "right" }}>
+                <div className="hide-on-mobile" style={{ textAlign: "right" }}>
                   <p style={{
                     fontSize: "0.9rem",
                     fontWeight: "600",

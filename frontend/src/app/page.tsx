@@ -62,17 +62,17 @@ export default function Home() {
       <Header />
 
       {/* Hero Section */}
-      <section style={{ maxWidth: "1200px", margin: "0 auto", padding: "48px 16px", textAlign: "center", position: "relative", zIndex: 10 }}>
-        <h2 className="gradient-text" style={{ fontSize: "3rem", fontWeight: "800", marginBottom: "16px" }}>
+      <section className="mobile-hero" style={{ maxWidth: "1200px", margin: "0 auto", padding: "32px 16px", textAlign: "center", position: "relative", zIndex: 10 }}>
+        <h2 className="gradient-text" style={{ fontSize: "2.5rem", fontWeight: "800", marginBottom: "12px" }}>
           Predict the Powder
         </h2>
-        <p style={{ fontSize: "1.25rem", color: "#94a3b8", maxWidth: "600px", margin: "0 auto 32px" }}>
+        <p style={{ fontSize: "1.1rem", color: "#94a3b8", maxWidth: "600px", margin: "0 auto 24px" }}>
           {beerMode
-            ? "Bet on snowfall at top ski resorts. Risk a few sips of beer to win big when you predict correctly!"
-            : "Bet on snowfall at top ski resorts. Buy YES or NO shares at $0.50 each and win if you predict correctly!"
+            ? "Bet on snowfall at top ski resorts. Win big when you predict correctly!"
+            : "Buy YES or NO shares at $0.50 each and win if you predict correctly!"
           }
         </p>
-        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "16px" }}>
+        <div className="mobile-stats" style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "12px" }}>
           <div className="glass-card" style={{
             padding: "12px 20px",
             border: beerMode ? "1px solid rgba(251, 191, 36, 0.3)" : undefined,
@@ -106,41 +106,47 @@ export default function Home() {
       </section>
 
       {/* Tabs Section */}
-      <section style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 16px 48px", position: "relative", zIndex: 10 }}>
+      <section style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 16px 32px", position: "relative", zIndex: 10 }}>
         {/* Tab Navigation */}
-        <div style={{
-          display: "flex",
-          gap: "8px",
-          marginBottom: "24px",
-          borderBottom: "1px solid rgba(100, 160, 220, 0.2)",
-          paddingBottom: "16px",
-        }}>
+        <div
+          className="mobile-tabs"
+          style={{
+            display: "flex",
+            gap: "6px",
+            marginBottom: "20px",
+            borderBottom: "1px solid rgba(100, 160, 220, 0.2)",
+            paddingBottom: "12px",
+          }}
+        >
           <button
+            className="mobile-tab-btn"
             onClick={() => setActiveTab("active")}
             style={{
-              padding: "12px 24px",
-              borderRadius: "12px 12px 0 0",
+              padding: "10px 18px",
+              borderRadius: "10px 10px 0 0",
               border: "none",
               background: activeTab === "active"
                 ? "linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)"
                 : "rgba(15, 30, 55, 0.8)",
               color: activeTab === "active" ? "white" : "#94a3b8",
               fontWeight: "600",
+              fontSize: "0.9rem",
               cursor: "pointer",
               display: "flex",
               alignItems: "center",
-              gap: "8px",
+              gap: "6px",
               transition: "all 0.2s",
+              flexShrink: 0,
             }}
           >
             <span>🎿</span>
-            Active Markets
+            <span>Active</span>
             {activeMarkets.length > 0 && (
               <span style={{
                 background: activeTab === "active" ? "rgba(255,255,255,0.2)" : "rgba(59, 130, 246, 0.3)",
-                padding: "2px 8px",
-                borderRadius: "10px",
-                fontSize: "0.75rem",
+                padding: "2px 6px",
+                borderRadius: "8px",
+                fontSize: "0.7rem",
               }}>
                 {activeMarkets.length}
               </span>
@@ -148,31 +154,34 @@ export default function Home() {
           </button>
 
           <button
+            className="mobile-tab-btn"
             onClick={() => setActiveTab("resolved")}
             style={{
-              padding: "12px 24px",
-              borderRadius: "12px 12px 0 0",
+              padding: "10px 18px",
+              borderRadius: "10px 10px 0 0",
               border: "none",
               background: activeTab === "resolved"
                 ? "linear-gradient(135deg, #10b981 0%, #059669 100%)"
                 : "rgba(15, 30, 55, 0.8)",
               color: activeTab === "resolved" ? "white" : "#94a3b8",
               fontWeight: "600",
+              fontSize: "0.9rem",
               cursor: "pointer",
               display: "flex",
               alignItems: "center",
-              gap: "8px",
+              gap: "6px",
               transition: "all 0.2s",
+              flexShrink: 0,
             }}
           >
             <span>🏆</span>
-            Resolved
+            <span>Done</span>
             {resolvedMarkets.length > 0 && (
               <span style={{
                 background: activeTab === "resolved" ? "rgba(255,255,255,0.2)" : "rgba(16, 185, 129, 0.3)",
-                padding: "2px 8px",
-                borderRadius: "10px",
-                fontSize: "0.75rem",
+                padding: "2px 6px",
+                borderRadius: "8px",
+                fontSize: "0.7rem",
               }}>
                 {resolvedMarkets.length}
               </span>
@@ -180,47 +189,53 @@ export default function Home() {
           </button>
 
           <button
+            className="mobile-tab-btn"
             onClick={() => setActiveTab("leaderboard")}
             style={{
-              padding: "12px 24px",
-              borderRadius: "12px 12px 0 0",
+              padding: "10px 18px",
+              borderRadius: "10px 10px 0 0",
               border: "none",
               background: activeTab === "leaderboard"
                 ? "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)"
                 : "rgba(15, 30, 55, 0.8)",
               color: activeTab === "leaderboard" ? "white" : "#94a3b8",
               fontWeight: "600",
+              fontSize: "0.9rem",
               cursor: "pointer",
               display: "flex",
               alignItems: "center",
-              gap: "8px",
+              gap: "6px",
               transition: "all 0.2s",
+              flexShrink: 0,
             }}
           >
             <span>🍺</span>
-            Beer Leaderboard
+            <span>Beers</span>
           </button>
 
           <button
+            className="mobile-tab-btn"
             onClick={() => setActiveTab("friends")}
             style={{
-              padding: "12px 24px",
-              borderRadius: "12px 12px 0 0",
+              padding: "10px 18px",
+              borderRadius: "10px 10px 0 0",
               border: "none",
               background: activeTab === "friends"
                 ? "linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)"
                 : "rgba(15, 30, 55, 0.8)",
               color: activeTab === "friends" ? "white" : "#94a3b8",
               fontWeight: "600",
+              fontSize: "0.9rem",
               cursor: "pointer",
               display: "flex",
               alignItems: "center",
-              gap: "8px",
+              gap: "6px",
               transition: "all 0.2s",
+              flexShrink: 0,
             }}
           >
             <span>👥</span>
-            My Circle
+            <span>Circle</span>
           </button>
 
           {/* Refresh button */}
@@ -274,7 +289,7 @@ export default function Home() {
                 <p style={{ color: "#64748b", fontSize: "0.875rem" }}>Check back later for new snowfall predictions!</p>
               </div>
             ) : (
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(350px, 1fr))", gap: "24px" }}>
+              <div className="mobile-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "20px" }}>
                 {activeMarkets.map((market) => (
                   <MarketCard key={market.id} market={market} onRefresh={() => refetch()} />
                 ))}
@@ -293,7 +308,7 @@ export default function Home() {
                 <p style={{ color: "#64748b", fontSize: "0.875rem" }}>Markets will appear here after they&apos;re settled</p>
               </div>
             ) : (
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(350px, 1fr))", gap: "24px" }}>
+              <div className="mobile-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "20px" }}>
                 {resolvedMarkets.map((market) => (
                   <MarketCard key={market.id} market={market} onRefresh={() => refetch()} />
                 ))}
@@ -318,11 +333,11 @@ export default function Home() {
       </section>
 
       {/* How It Works Section */}
-      <section style={{ maxWidth: "1200px", margin: "0 auto", padding: "48px 16px", borderTop: "1px solid rgba(100, 160, 220, 0.2)", position: "relative", zIndex: 10 }}>
-        <h3 style={{ fontSize: "1.5rem", fontWeight: "700", color: "white", textAlign: "center", marginBottom: "32px" }}>
+      <section style={{ maxWidth: "1200px", margin: "0 auto", padding: "32px 16px", borderTop: "1px solid rgba(100, 160, 220, 0.2)", position: "relative", zIndex: 10 }}>
+        <h3 style={{ fontSize: "1.25rem", fontWeight: "700", color: "white", textAlign: "center", marginBottom: "24px" }}>
           How It Works
         </h3>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: "32px" }}>
+        <div className="mobile-how-it-works" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "24px" }}>
           {[
             { step: "1", title: "Choose a Resort", desc: "Pick from Mammoth, Palisades Tahoe, Jackson Hole, Snowbird, or Aspen" },
             { step: "2", title: "Buy Shares", desc: "Buy YES if you think it will snow the target amount, NO if you don't" },

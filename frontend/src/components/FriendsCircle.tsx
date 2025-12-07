@@ -76,8 +76,8 @@ export default function FriendsCircle() {
   return (
     <div>
       {/* Header with Add Button */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
-        <div>
+      <div className="mobile-friend-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px", gap: "12px", flexWrap: "wrap" }}>
+        <div style={{ flex: "1 1 auto", minWidth: "200px" }}>
           <h3 style={{ fontSize: "1.25rem", fontWeight: "700", color: "white", marginBottom: "4px" }}>
             Your Friends Circle
           </h3>
@@ -208,7 +208,7 @@ export default function FriendsCircle() {
           {circle.friends.map((friend: Friend) => (
             <div
               key={friend.address}
-              className="glass-card"
+              className="glass-card mobile-friend-card"
               style={{
                 padding: "16px 20px",
                 display: "flex",
