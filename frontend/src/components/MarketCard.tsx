@@ -122,6 +122,13 @@ export default function MarketCard({ market, onRefresh }: MarketCardProps) {
       sendTransaction(approveTx, {
         onSuccess: async () => {
           console.log("USDC approved, now buying shares...");
+          console.log("Buying shares:", {
+            marketId: market.id,
+            resortName: market.resortName,
+            isYes: isYes,
+            shareAmount: shareAmount,
+            marketStatus: market.status,
+          });
 
           const marketContract = getContract({
             client,
