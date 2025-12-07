@@ -29,6 +29,7 @@ A prediction market platform where users bet on snowfall at ski resorts using bl
 - **Buy Beer with Winnings**: Convert your USDC winnings into lodge beer vouchers via x402 micropayments
 - **Beer Leaderboard**: Track who has won the most beers across all users
 - **Friends Circle**: Add wallet addresses with labels, see friends' predictions on each market
+- **Copy Trading**: One-click copy a friend's position or follow your circle's sentiment
 - **Mobile-Responsive**: Fully optimized for mobile devices with touch-friendly UI
 - **Toast Notifications**: Elegant slide-in notifications for all actions
 - **Weather Forecasts**: Live snow forecasts with 24h/48h/7-day predictions

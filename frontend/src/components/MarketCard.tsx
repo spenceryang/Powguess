@@ -627,18 +627,52 @@ export default function MarketCard({ market, onRefresh }: MarketCardProps) {
                               </p>
                             </div>
                           </div>
-                          <div style={{ textAlign: "right" }}>
-                            <p style={{
-                              color: friend.netPosition > 0 ? "#10b981" : friend.netPosition < 0 ? "#ef4444" : "#94a3b8",
-                              fontWeight: "700",
-                              fontSize: "0.95rem",
-                              margin: 0,
-                            }}>
-                              {friend.netPosition > 0 ? "+" : ""}{friend.netPosition}
-                            </p>
-                            <p style={{ color: "#64748b", fontSize: "0.65rem", margin: 0 }}>
-                              net position
-                            </p>
+                          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                            <div style={{ textAlign: "right" }}>
+                              <p style={{
+                                color: friend.netPosition > 0 ? "#10b981" : friend.netPosition < 0 ? "#ef4444" : "#94a3b8",
+                                fontWeight: "700",
+                                fontSize: "0.95rem",
+                                margin: 0,
+                              }}>
+                                {friend.netPosition > 0 ? "+" : ""}{friend.netPosition}
+                              </p>
+                              <p style={{ color: "#64748b", fontSize: "0.65rem", margin: 0 }}>
+                                net position
+                              </p>
+                            </div>
+                            {/* Copy Trade Button */}
+                            {market.status === "Active" && !isExpired && friend.netPosition !== 0 && (
+                              <button
+                                onClick={() => {
+                                  // Copy the friend's dominant position
+                                  const isYesTrade = friend.netPosition > 0;
+                                  const copyAmount = Math.abs(friend.netPosition);
+                                  setBuyType(isYesTrade ? "yes" : "no");
+                                  setShareAmount(copyAmount);
+                                  setShowBuyModal(true);
+                                }}
+                                style={{
+                                  padding: "6px 10px",
+                                  borderRadius: "8px",
+                                  border: "none",
+                                  background: friend.netPosition > 0
+                                    ? "linear-gradient(135deg, #10b981 0%, #059669 100%)"
+                                    : "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)",
+                                  color: "white",
+                                  fontSize: "0.7rem",
+                                  fontWeight: "600",
+                                  cursor: "pointer",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: "4px",
+                                  whiteSpace: "nowrap",
+                                }}
+                                title={`Copy ${friend.label.split(" ")[0]}'s ${friend.netPosition > 0 ? "YES" : "NO"} position`}
+                              >
+                                <span>📋</span> Copy
+                              </button>
+                            )}
                           </div>
                         </div>
                       ))}
@@ -652,33 +686,70 @@ export default function MarketCard({ market, onRefresh }: MarketCardProps) {
                       padding: "10px",
                       background: "rgba(0, 0, 0, 0.2)",
                       borderRadius: "8px",
-                      display: "flex",
-                      justifyContent: "space-around",
-                      textAlign: "center",
                     }}>
-                      <div>
-                        <p style={{ color: "#10b981", fontWeight: "700", fontSize: "1rem", margin: 0 }}>
-                          {friendPositions.reduce((sum, f) => sum + f.yesShares, 0)}
-                        </p>
-                        <p style={{ color: "#64748b", fontSize: "0.65rem", margin: 0 }}>Total YES</p>
+                      <div style={{
+                        display: "flex",
+                        justifyContent: "space-around",
+                        textAlign: "center",
+                        marginBottom: market.status === "Active" && !isExpired ? "10px" : 0,
+                      }}>
+                        <div>
+                          <p style={{ color: "#10b981", fontWeight: "700", fontSize: "1rem", margin: 0 }}>
+                            {friendPositions.reduce((sum, f) => sum + f.yesShares, 0)}
+                          </p>
+                          <p style={{ color: "#64748b", fontSize: "0.65rem", margin: 0 }}>Total YES</p>
+                        </div>
+                        <div>
+                          <p style={{ color: "#ef4444", fontWeight: "700", fontSize: "1rem", margin: 0 }}>
+                            {friendPositions.reduce((sum, f) => sum + f.noShares, 0)}
+                          </p>
+                          <p style={{ color: "#64748b", fontSize: "0.65rem", margin: 0 }}>Total NO</p>
+                        </div>
+                        <div>
+                          <p style={{
+                            color: friendPositions.reduce((sum, f) => sum + f.netPosition, 0) > 0 ? "#10b981" : friendPositions.reduce((sum, f) => sum + f.netPosition, 0) < 0 ? "#ef4444" : "#94a3b8",
+                            fontWeight: "700",
+                            fontSize: "1rem",
+                            margin: 0,
+                          }}>
+                            {friendPositions.reduce((sum, f) => sum + f.netPosition, 0) > 0 ? "Bullish" : friendPositions.reduce((sum, f) => sum + f.netPosition, 0) < 0 ? "Bearish" : "Neutral"}
+                          </p>
+                          <p style={{ color: "#64748b", fontSize: "0.65rem", margin: 0 }}>Circle Sentiment</p>
+                        </div>
                       </div>
-                      <div>
-                        <p style={{ color: "#ef4444", fontWeight: "700", fontSize: "1rem", margin: 0 }}>
-                          {friendPositions.reduce((sum, f) => sum + f.noShares, 0)}
-                        </p>
-                        <p style={{ color: "#64748b", fontSize: "0.65rem", margin: 0 }}>Total NO</p>
-                      </div>
-                      <div>
-                        <p style={{
-                          color: friendPositions.reduce((sum, f) => sum + f.netPosition, 0) > 0 ? "#10b981" : friendPositions.reduce((sum, f) => sum + f.netPosition, 0) < 0 ? "#ef4444" : "#94a3b8",
-                          fontWeight: "700",
-                          fontSize: "1rem",
-                          margin: 0,
-                        }}>
-                          {friendPositions.reduce((sum, f) => sum + f.netPosition, 0) > 0 ? "Bullish" : friendPositions.reduce((sum, f) => sum + f.netPosition, 0) < 0 ? "Bearish" : "Neutral"}
-                        </p>
-                        <p style={{ color: "#64748b", fontSize: "0.65rem", margin: 0 }}>Circle Sentiment</p>
-                      </div>
+                      {/* Copy Circle Sentiment Button */}
+                      {market.status === "Active" && !isExpired && friendPositions.reduce((sum, f) => sum + f.netPosition, 0) !== 0 && (
+                        <button
+                          onClick={() => {
+                            const circleSentiment = friendPositions.reduce((sum, f) => sum + f.netPosition, 0);
+                            const isYesTrade = circleSentiment > 0;
+                            setBuyType(isYesTrade ? "yes" : "no");
+                            setShareAmount(1);
+                            setShowBuyModal(true);
+                            toast.info("Copy Circle", `Following your circle's ${isYesTrade ? "bullish" : "bearish"} sentiment`);
+                          }}
+                          style={{
+                            width: "100%",
+                            padding: "8px 12px",
+                            borderRadius: "8px",
+                            border: "none",
+                            background: friendPositions.reduce((sum, f) => sum + f.netPosition, 0) > 0
+                              ? "linear-gradient(135deg, #10b981 0%, #059669 100%)"
+                              : "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)",
+                            color: "white",
+                            fontSize: "0.8rem",
+                            fontWeight: "600",
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: "6px",
+                          }}
+                        >
+                          <span>👥</span>
+                          Follow Circle ({friendPositions.reduce((sum, f) => sum + f.netPosition, 0) > 0 ? "Buy YES" : "Buy NO"})
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>
