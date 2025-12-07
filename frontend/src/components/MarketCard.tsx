@@ -140,7 +140,10 @@ export default function MarketCard({ market, onRefresh }: MarketCardProps) {
             contract: marketContract,
             method: "function buyShares(uint256 marketId, bool isYes, uint256 shareAmount)",
             params: [BigInt(market.id), isYes, BigInt(shareAmount)],
+            gas: BigInt(300000), // Explicit gas limit
           });
+
+          console.log("Prepared buyTx:", buyTx);
 
           sendTransaction(buyTx, {
             onSuccess: () => {
